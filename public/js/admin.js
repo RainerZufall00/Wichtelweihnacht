@@ -34,7 +34,6 @@ async function load() {
 }
 
 function render() {
-  renderSettings();
   if (state.drawnAt) {
     renderDone();
     show('s-done');
@@ -42,34 +41,6 @@ function render() {
     renderSetup();
     show('s-setup');
   }
-}
-
-// ------------------------------------------------------------ Einstellungen
-function renderSettings() {
-  const s = state.settings;
-  $$('[data-settings]').forEach((host) => {
-    host.innerHTML = `
-      <span class="kicker">${state.drawnAt ? 'Infos für alle' : 'Schritt 3'}</span>
-      <h2>Rahmenbedingungen 🎁</h2>
-      <label class="field">Budget <span class="hint">– steht auf jedem Los</span>
-        <input type="text" name="budget" maxlength="40" placeholder="z.B. 25 €" value="${esc(s.budget)}"></label>
-      <label class="field">Bescherung <span class="hint">– mit Countdown auf dem Los</span>
-        <input type="datetime-local" name="date" value="${esc(s.date && s.date.length === 10 ? s.date + 'T18:00' : s.date)}"></label>
-      <label class="field">Nachricht an alle <span class="hint">– optional</span>
-        <textarea name="message" maxlength="600" placeholder="z.B. Wir treffen uns an Heiligabend im Kuhstall. Bitte Gummistiefel mitbringen!">${esc(s.message)}</textarea></label>
-      <button class="btn green small" type="button">Speichern</button>`;
-    $('button', host).addEventListener('click', async () => {
-      try {
-        state = await call('settings', {
-          budget: $('[name=budget]', host).value,
-          date: $('[name=date]', host).value,
-          message: $('[name=message]', host).value,
-        });
-        renderSettings();
-        toast('Gespeichert – die Kühe haben es notiert 🐄');
-      } catch (e) { toast(e.message, 'err'); }
-    });
-  });
 }
 
 // ------------------------------------------------------------ Vorbereitung
@@ -146,7 +117,7 @@ $('#spoilerChk').addEventListener('change', (e) => { spoiler = e.target.checked;
 // ------------------------------------------------------------ Die große Show
 const STATUS = [
   'Kühe werden zur Abstimmung gerufen …',
-  'Emmi schnüffelt an jedem Los …',
+  'Emmi prüft jedes Los. Gründlich. Sehr gemütlich …',
   'Micky bewacht die Milchkanne. Grimmig.',
   'Lose werden im Mondlicht gemolken …',
   'Kuh Berta hat ein Los gefressen. Wird nachgedruckt …',
@@ -249,7 +220,6 @@ function renderDone() {
   $('#drawnAt').textContent = new Date(state.drawnAt).toLocaleString('de-DE', { dateStyle: 'medium', timeStyle: 'short' });
   $('#stPeople').textContent = ps.length;
   $('#stOpened').textContent = opened;
-  $('#stWishes').textContent = ps.filter((p) => p.hasWishes).length;
   $('#progress').style.width = `${(opened / ps.length) * 100}%`;
   $('#progressText').textContent =
     opened === ps.length ? 'Alle haben ihr Los gesehen. Die Herde ist bereit! 🐄🎄' : `Noch ${ps.length - opened} ${ps.length - opened === 1 ? 'Los' : 'Lose'} ungeöffnet im Stall.`;
@@ -264,7 +234,7 @@ function renderDone() {
   $('#people').innerHTML = ps
     .map((p) => `<li class="person">
       <span class="avatar" style="background:${colorFor(p.name)}">${esc(p.name[0].toUpperCase())}</span>
-      <span class="nm">${esc(p.name)} ${p.openedAt ? `<span class="badge ok" title="${esc(new Date(p.openedAt).toLocaleString('de-DE'))}">✓ geöffnet</span>` : '<span class="badge">✉️ ungeöffnet</span>'}${p.hasWishes ? '<span class="badge ok">📜 Wünsche</span>' : ''}</span>
+      <span class="nm">${esc(p.name)} ${p.openedAt ? `<span class="badge ok" title="${esc(new Date(p.openedAt).toLocaleString('de-DE'))}">✓ geöffnet</span>` : '<span class="badge">✉️ ungeöffnet</span>'}</span>
       <span class="pair">beschenkt <b>${esc(nameOf(p.receiverId))}</b></span>
       <span class="acts">
         <button class="btn small" data-share="${p.id}" type="button">📤 Teilen</button>

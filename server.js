@@ -18,7 +18,6 @@ const TRUST_PROXY = process.env.TRUST_PROXY === '1';
 
 const MAX_PEOPLE = 80;
 const MAX_NAME = 40;
-const MAX_WISH = 1500;
 
 // ---------------------------------------------------------------- Datenbank
 const newToken = (bytes = 12) => crypto.randomBytes(bytes).toString('base64url');
@@ -27,8 +26,7 @@ function emptyDb() {
   return {
     version: 1,
     adminToken: null,
-    settings: { budget: '25 €', date: `${new Date().getFullYear()}-12-24T18:00`, message: '' },
-    participants: [], // {id, name, token, wishes, openedAt, revealCount}
+    participants: [], // {id, name, token, openedAt, revealCount}
     exclusions: [], // [idA, idB]
     drawnAt: null,
     assignments: {}, // giverId -> receiverId
@@ -48,6 +46,8 @@ function loadDb() {
 }
 
 let db = loadDb();
+delete db.settings;
+for (const p of db.participants) delete p.wishes;
 function save() {
   fs.mkdirSync(DATA_DIR, { recursive: true });
   const tmp = `${DB_FILE}.${process.pid}.tmp`;
@@ -197,12 +197,10 @@ function readBody(req) {
 }
 
 const cleanName = (n) => String(n ?? '').replace(/[\u0000-\u001f<>]/g, '').replace(/\s+/g, ' ').trim().slice(0, MAX_NAME);
-const cleanText = (t, max) => String(t ?? '').replace(/[\u0000-\u0008\u000b-\u001f]/g, '').slice(0, max);
 const byId = (id) => db.participants.find((p) => p.id === id);
 
 function adminState() {
   return {
-    settings: db.settings,
     drawnAt: db.drawnAt,
     participants: db.participants.map((p) => ({
       id: p.id,
@@ -210,7 +208,6 @@ function adminState() {
       token: p.token,
       openedAt: p.openedAt || null,
       revealCount: p.revealCount || 0,
-      hasWishes: Boolean(p.wishes && p.wishes.trim()),
       receiverId: db.assignments[p.id] || null,
     })),
     exclusions: db.exclusions,
@@ -239,8 +236,6 @@ async function handleApi(req, res, url, ip) {
         name: p.name,
         drawn: Boolean(db.drawnAt),
         revealedBefore: Boolean(p.openedAt),
-        settings: db.settings,
-        wishes: p.wishes || '',
         count: db.participants.length,
       });
     }
@@ -251,13 +246,7 @@ async function handleApi(req, res, url, ip) {
       if (!p.openedAt) p.openedAt = new Date().toISOString();
       p.revealCount = (p.revealCount || 0) + 1;
       save();
-      return json(res, 200, { receiver: r.name, receiverWishes: r.wishes || '' });
-    }
-    if (method === 'POST' && action === 'wishes') {
-      const body = await readBody(req);
-      p.wishes = cleanText(body.wishes, MAX_WISH);
-      save();
-      return json(res, 200, { ok: true, wishes: p.wishes });
+      return json(res, 200, { receiver: r.name });
     }
     return json(res, 405, { error: 'nicht erlaubt' });
   }
@@ -276,16 +265,6 @@ async function handleApi(req, res, url, ip) {
 
     const body = method === 'POST' ? await readBody(req) : {};
 
-    if (method === 'POST' && action === 'settings') {
-      db.settings = {
-        budget: cleanText(body.budget, 40).trim(),
-        date: /^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2})?$/.test(body.date || '') ? body.date : '',
-        message: cleanText(body.message, 600),
-      };
-      save();
-      return json(res, 200, adminState());
-    }
-
     if (method === 'POST' && action === 'participants') {
       if (db.drawnAt) return json(res, 409, { error: 'Schon ausgelost – erst zurücksetzen.' });
       const names = (Array.isArray(body.names) ? body.names : []).map(cleanName).filter(Boolean);
@@ -300,7 +279,7 @@ async function handleApi(req, res, url, ip) {
       const old = new Map(db.participants.map((p) => [p.name.toLocaleLowerCase('de'), p]));
       db.participants = names.map((name) => {
         const prev = old.get(name.toLocaleLowerCase('de'));
-        return prev ? { ...prev, name } : { id: newToken(6), name, token: newToken(12), wishes: '', openedAt: null, revealCount: 0 };
+        return prev ? { ...prev, name } : { id: newToken(6), name, token: newToken(12), openedAt: null, revealCount: 0 };
       });
       const ids = new Set(db.participants.map((p) => p.id));
       const excl = Array.isArray(body.exclusions) ? body.exclusions : db.exclusions;

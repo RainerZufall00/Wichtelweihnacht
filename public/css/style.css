@@ -138,8 +138,8 @@ textarea { min-height: 110px; resize: vertical; line-height: 1.4; }
 @keyframes wiggle { 25% { transform: rotate(-6deg) translateY(-4px); } 50% { transform: rotate(5deg) translateY(-8px); } 75% { transform: rotate(-3deg); } }
 .say {
   position: fixed; z-index: 120; transform: translate(-50%, -130%); background: #fff; color: var(--ink); font-weight: 600;
-  padding: 8px 14px; border-radius: 16px; box-shadow: 0 8px 20px rgba(0, 0, 0, .3); pointer-events: none; white-space: nowrap;
-  animation: pop 1.8s forwards;
+  padding: 8px 14px; border-radius: 16px; box-shadow: 0 8px 20px rgba(0, 0, 0, .3); pointer-events: none; width: max-content; max-width: min(250px, 80vw); text-align: center; line-height: 1.3;
+  animation: pop 2.6s forwards;
 }
 .say::after { content: ''; position: absolute; left: 50%; bottom: -8px; border: 8px solid transparent; border-top-color: #fff; border-bottom: 0; transform: translateX(-50%); }
 @keyframes pop { 0% { opacity: 0; transform: translate(-50%, -100%) scale(.6); } 12% { opacity: 1; transform: translate(-50%, -130%) scale(1.05); } 20% { transform: translate(-50%, -130%) scale(1); } 85% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, -160%); } }
@@ -192,17 +192,6 @@ textarea { min-height: 110px; resize: vertical; line-height: 1.4; }
 
 /* Ergebnis */
 .result-name { font-family: 'Xmas', 'Fredoka'; color: var(--red); font-size: clamp(44px, 14vw, 72px); line-height: 1; margin: 6px 0 2px; text-align: center; word-break: break-word; }
-.facts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
-.fact { background: #fff; border-radius: 16px; padding: 12px; border: 2px solid #efe4cf; }
-.fact .k { font-size: 12px; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); }
-.fact .v { font-size: 20px; font-weight: 600; margin-top: 2px; }
-.fact.wide { grid-column: 1 / -1; }
-.count { display: flex; gap: 8px; justify-content: center; margin-top: 6px; }
-.count div { background: var(--night-2); color: #fff; border-radius: 12px; padding: 8px 6px 6px; min-width: 58px; text-align: center; }
-.count b { display: block; font-size: 24px; font-variant-numeric: tabular-nums; }
-.count small { font-size: 11px; opacity: .75; text-transform: uppercase; letter-spacing: .08em; }
-.wishes { white-space: pre-wrap; background: #fff; border-radius: 16px; padding: 14px; border: 2px dashed #e3d6bd; font-size: 16px; line-height: 1.45; }
-.note { background: #fff6d8; border-radius: 14px; padding: 12px 14px; border-left: 5px solid var(--gold); white-space: pre-wrap; }
 
 .dog-duo { display: flex; justify-content: center; align-items: flex-end; gap: 4px; margin: -4px 0 4px; }
 .dog-duo svg { height: auto; }
@@ -227,6 +216,8 @@ textarea { min-height: 110px; resize: vertical; line-height: 1.4; }
 .excl-list li { display: flex; justify-content: space-between; align-items: center; background: #fff; border-radius: 12px; padding: 8px 12px; border: 2px solid #efe4cf; }
 
 .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 12px; }
+
+.stats.two { grid-template-columns: repeat(2, 1fr); }
 .stat { background: #fff; border-radius: 16px; padding: 12px; text-align: center; border: 2px solid #efe4cf; }
 .stat b { display: block; font-size: 26px; }
 .stat small { color: var(--muted); font-size: 12px; }

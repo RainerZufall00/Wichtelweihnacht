@@ -1,4 +1,4 @@
-import { $, $$, api, esc, sleep, startSnow, confetti, sound, buzz, soundToggle, wireTaps, toast, setupPwa, countdown, fmtDate, store, reducedMotion } from './common.js';
+import { $, $$, api, sleep, startSnow, confetti, sound, buzz, soundToggle, wireTaps, toast, setupPwa, store, reducedMotion } from './common.js';
 import { farmScene, dog, cow, giftIcon } from './art.js';
 
 const token = location.pathname.split('/')[2] || '';
@@ -32,12 +32,10 @@ async function init() {
     me = cached.me;
     result = cached.result;
     setNames();
-    renderWishForms();
     return showResult(false);
   }
   store.set('myLink', location.pathname);
   setNames();
-  renderWishForms();
   if (!me.drawn) return show('s-wait');
   show('s-ask');
 }
@@ -78,7 +76,7 @@ $('#yesBtn').addEventListener('click', async () => {
 const persist = () => store.set(cacheKey, JSON.stringify({ me, result }));
 
 const CHECKS = [
-  ['🐕', 'Emmi schnüffelt am Bildschirm', 'Geruchsprobe: eindeutig Plätzchen'],
+  ['🐕', 'Emmi macht extra ein Auge auf', 'Geruchsprobe: Plätzchen. Emmi schläft beruhigt weiter.'],
   ['🐾', 'Micky prüft den Pfotenabdruck', 'Daumen gilt als Pfote. Passt.'],
   ['🐄', 'Kuh Berta bestätigt per Muh', 'Muh-Faktor-Authentifizierung erfolgreich'],
   ['🎅', 'Abgleich mit der Liste vom Weihnachtsmann', 'Status: überwiegend artig'],
@@ -202,70 +200,15 @@ function startScratch() {
 }
 
 // ------------------------------------------------------------ Ergebnis
-let countTimer;
 function showResult(celebrate) {
   $('#resultName').textContent = result.receiver;
-  $$('[data-receiver]').forEach((el) => (el.textContent = result.receiver));
-  $('#theirWishes').innerHTML = result.receiverWishes?.trim()
-    ? `<div class="wishes">${esc(result.receiverWishes)}</div>`
-    : `<p class="muted">${esc(result.receiver)} hat noch nichts aufgeschrieben. Die Kühe tippen auf: Socken. Schau später nochmal rein!</p>`;
-
-  const s = me.settings || {};
-  $('#noteCard').hidden = !s.message?.trim();
-  $('#note').textContent = s.message || '';
-
-  const facts = [];
-  if (s.budget) facts.push(`<div class="fact"><div class="k">Budget</div><div class="v">${esc(s.budget)}</div></div>`);
-  facts.push(`<div class="fact"><div class="k">Wichtel</div><div class="v">${me.count} 🐄</div></div>`);
-  if (s.date) facts.push(`<div class="fact wide"><div class="k">Bescherung</div><div class="v">${esc(fmtDate(s.date))}</div><div class="count" id="count"></div></div>`);
-  $('#facts').innerHTML = facts.join('');
-  clearInterval(countTimer);
-  const tick = () => {
-    const el = $('#count');
-    if (!el) return;
-    const c = countdown(s.date);
-    if (!c) return (el.innerHTML = '');
-    el.innerHTML = c.done
-      ? '<b style="font-size:20px;padding:4px 10px">🎁 Bescherung! 🎁</b>'
-      : [['Tage', c.d], ['Std', c.h], ['Min', c.m], ['Sek', c.s]].map(([l, v]) => `<div><b>${String(v).padStart(2, '0')}</b><small>${l}</small></div>`).join('');
-  };
-  tick();
-  countTimer = setInterval(tick, 1000);
-
+  $('#herdLine').textContent = `Du bist einer von ${me.count} Wichteln im Humberger Stall.`;
   show('s-result');
   window.scrollTo({ top: 0, behavior: 'smooth' });
   if (celebrate) setTimeout(() => sound.moo(), 300);
 }
 
 $('#againBtn').addEventListener('click', () => startScratch());
-
-// ------------------------------------------------------------ Wunschzettel
-function renderWishForms() {
-  $$('[data-wishform]').forEach((host) => {
-    host.innerHTML = `<label class="field" style="margin-top:4px">
-        <textarea maxlength="1500" placeholder="z.B. Wollsocken (Größe 42), gutes Buch, irgendwas mit Käse vom Hof …"></textarea>
-      </label>
-      <button class="btn green small" type="button">Wunschzettel speichern</button>`;
-    const ta = $('textarea', host);
-    ta.value = me.wishes || '';
-    $('button', host).addEventListener('click', async (e) => {
-      const btn = e.currentTarget;
-      btn.disabled = true;
-      try {
-        const r = await api(`/api/w/${token}/wishes`, { method: 'POST', body: { wishes: ta.value } });
-        me.wishes = r.wishes;
-        $$('[data-wishform] textarea').forEach((t) => (t.value = r.wishes));
-        if (result) persist();
-        toast('Gespeichert! Dein Wichtel freut sich 🎁');
-        sound.bells();
-      } catch (err) {
-        toast(err.message, 'err');
-      } finally {
-        btn.disabled = false;
-      }
-    });
-  });
-}
 
 // ------------------------------------------------------------ Installieren
 let deferred;

@@ -221,7 +221,7 @@ export function farmScene({ cows = true, dogs = true } = {}) {
     ${cows ? `<g class="tap" data-sound="moo" data-say="Muuuh! 🎄"><svg x="160" y="112" width="96" height="104">${cow({ coat: 'fleck', hat: 'santa' })}</svg></g>
     <g class="tap" data-sound="moo" data-say="Muh-ry Christmas!"><svg x="236" y="128" width="84" height="90">${cow({ coat: 'schwarz', hat: 'none' })}</svg></g>` : ''}
     <path d="M0 238 Q210 222 420 238 V270 H0 Z" fill="#fff"/>
-    ${dogs ? `<g class="tap" data-sound="bark" data-say="Wuff! Emmi, Berner Sennenhund 🦌"><svg x="14" y="154" width="94" height="120">${dog('emmi')}</svg></g>
+    ${dogs ? `<g class="tap" data-sound="bark" data-say="Wuff … ich steh gleich auf. Gleich.|Ich hab schon mehr Weihnachten erlebt als ihr alle zusammen.|Langsam, Kinder. Ich bin nicht mehr die Jüngste.|Früher gab's unterm Baum noch richtige Knochen.|Weckt mich, wenn es Leberwurst gibt.|Graue Schnauze, großes Herz. Frohe Weihnachten!"><svg x="14" y="154" width="94" height="120">${dog('emmi')}</svg></g>
     <g class="tap" data-sound="bark" data-say="Wuff! Micky, klein aber oho 🐑"><svg x="100" y="200" width="58" height="74">${dog('micky')}</svg></g>` : ''}
   </svg>`;
 }

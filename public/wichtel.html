@@ -40,7 +40,7 @@
     <!-- Unbekannter Link -->
     <section class="screen card center gate" id="s-unknown">
       <div class="dog-duo" data-dogs></div>
-      <h2>Wuff?! Diesen Link kennt nicht mal Emmi.</h2>
+      <h2>Wuff?! Diesen Link kennt nicht mal Emmi – und die kennt hier wirklich alles.</h2>
       <p class="muted">Vielleicht hat sich beim Kopieren eine Kuh auf die Tastatur gesetzt. Frag nochmal nach deinem persönlichen Link.</p>
     </section>
 
@@ -49,8 +49,6 @@
       <span class="kicker">Moin <span data-name></span>!</span>
       <h2>Die Kühe beraten noch …</h2>
       <p>Die Lostrommel wurde noch nicht angeworfen. Schau später nochmal vorbei – dein Link bleibt derselbe.</p>
-      <p class="muted">Tipp: Du kannst schon mal deinen Wunschzettel schreiben 👇</p>
-      <div data-wishform></div>
     </section>
 
     <!-- Bist du's wirklich? -->
@@ -68,7 +66,7 @@
     <section class="screen card center gate" id="s-nope">
       <div class="dog-duo" data-dogs></div>
       <h2>Erwischt! 🚨</h2>
-      <p><b>Emmi</b> hat dich angeschnüffelt und <b>Micky</b> knurrt leise. Fremde Lose gucken ist schlimmer als Kühe ohne Hörner!</p>
+      <p><b>Emmi</b> ist dafür extra vom Ofen aufgestanden, und das macht sie in ihrem Alter nicht mehr für jeden. <b>Micky</b> knurrt leise. Fremde Lose gucken ist schlimmer als Kühe ohne Hörner!</p>
       <p class="muted">Bitte gib den Link an <b data-name></b> weiter – oder ab mit dir in den Stall.</p>
       <div class="btns stack" style="margin-top:14px">
         <button class="btn ghost block" id="backBtn" type="button">Hups, doch – ich bin's wirklich</button>
@@ -109,23 +107,7 @@
         <p style="margin:6px 0 0">Du bist der Wichtel von</p>
         <div class="result-name" id="resultName"></div>
         <p class="muted">Nicht verraten! Sonst muht die ganze Herde.</p>
-        <div class="facts" id="facts"></div>
-      </div>
-
-      <div class="card" id="theirWishesCard">
-        <h3>📜 Wunschzettel von <span data-receiver></span></h3>
-        <div id="theirWishes"></div>
-      </div>
-
-      <div class="card" id="noteCard" hidden>
-        <h3>📣 Nachricht vom Weihnachtswichtel</h3>
-        <div class="note" id="note"></div>
-      </div>
-
-      <div class="card">
-        <h3>✍️ Dein eigener Wunschzettel</h3>
-        <p class="muted">Dein Wichtel sieht das hier – aber du erfährst nie, wer es ist.</p>
-        <div data-wishform></div>
+        <p class="muted" id="herdLine" style="font-size:14px"></p>
       </div>
 
       <div class="card center">

@@ -224,7 +224,10 @@ export function wireTaps(root = document) {
     g.classList.remove('wiggle');
     void g.getBBox?.();
     g.classList.add('wiggle');
-    bubble(g.dataset.say || (kind === 'moo' ? 'Muuuh!' : 'Wuff!'), e.clientX, e.clientY);
+    const says = (g.dataset.say || (kind === 'moo' ? 'Muuuh!' : 'Wuff!')).split('|');
+    const i = Number(g.dataset.i || 0);
+    g.dataset.i = (i + 1) % says.length;
+    bubble(says[i], e.clientX, e.clientY);
   });
 }
 
@@ -232,10 +235,10 @@ export function bubble(text, x, y) {
   const b = document.createElement('div');
   b.className = 'say';
   b.textContent = text;
-  b.style.left = `${Math.min(Math.max(x, 80), innerWidth - 80)}px`;
+  b.style.left = `${Math.min(Math.max(x, 130), innerWidth - 130)}px`;
   b.style.top = `${y}px`;
   document.body.appendChild(b);
-  setTimeout(() => b.remove(), 1800);
+  setTimeout(() => b.remove(), 2600);
 }
 
 // ------------------------------------------------------------ Toast
@@ -260,20 +263,3 @@ export function setupPwa(startPath) {
     addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
   }
 }
-
-// ------------------------------------------------------------ Countdown
-export function countdown(dateStr) {
-  if (!dateStr) return null;
-  const target = new Date(dateStr.length === 10 ? `${dateStr}T18:00` : dateStr);
-  if (isNaN(target)) return null;
-  const ms = target - Date.now();
-  if (ms <= 0) return { done: true, target };
-  const d = Math.floor(ms / 864e5), h = Math.floor((ms % 864e5) / 36e5), m = Math.floor((ms % 36e5) / 6e4), s = Math.floor((ms % 6e4) / 1e3);
-  return { d, h, m, s, target };
-}
-
-export const fmtDate = (dateStr) => {
-  const d = new Date(dateStr.length === 10 ? `${dateStr}T18:00` : dateStr);
-  if (isNaN(d)) return '';
-  return d.toLocaleString('de-DE', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }) + ' Uhr';
-};

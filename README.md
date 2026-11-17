@@ -2,10 +2,10 @@
 
 Einmalige Wichtel-Auslosung als PWA, gemacht für den Humberger Demeter-Hof, mit Kühen (natürlich mit Hörnern) und den Hofhunden **Emmi** & **Micky**.
 
-- **Admin-Link**: Namen eintragen, optional Sperren festlegen (z. B. für Pärchen), Budget, Datum der Bescherung und eine Nachricht setzen. Dann die **Milchkannen-Lostrommel** anwerfen.
+- **Admin-Link**: Namen eintragen und optional Sperren festlegen (z. B. für Pärchen). Dann die **Milchkannen-Lostrommel** anwerfen.
 - Gelost wird **ein großer Kreis**. Niemand zieht sich selbst, und niemand beschenkt sich gegenseitig.
 - Der Admin sieht danach die Wichtel-Kette (auf Wunsch mit Spoilerschutz, falls man selbst mitmacht). Zu jeder Person gibt es einen Link mit den Buttons **Teilen / Kopieren / WhatsApp**. Live ist zu sehen, wer sein Los schon geöffnet hat.
-- **Personen-Link**: „Bist du wirklich Max?“ → bei *Nö* schlagen Emmi & Micky Alarm. Bei *Ja* folgt eine hochoffizielle Identitätsprüfung und dann ein **Rubbellos im Kuhfell-Look**. Danach gibt es Konfetti, Glöckchen, den Countdown zur Bescherung und den Wunschzettel der beschenkten Person. Den eigenen Wunschzettel kann man dort auch schreiben.
+- **Personen-Link**: „Bist du wirklich Max?“ → bei *Nö* schlagen Emmi & Micky Alarm. Bei *Ja* folgt eine hochoffizielle Identitätsprüfung und dann ein **Rubbellos im Kuhfell-Look**. Danach gibt es Konfetti und Glöckchen. Das Ergebnis lässt sich jederzeit wieder aufrufen.
 - PWA: installierbar, offline-fähig. Jeder Link wird als eigene App mit dem richtigen Startlink installiert.
 - Kleine Extras: Wer Kühe oder Hunde antippt, hört sie muhen oder bellen (per WebAudio erzeugt, ohne Sounddateien).
 
@@ -45,7 +45,7 @@ Wenn `ADMIN_TOKEN` nicht gesetzt ist, wird beim ersten Start ein zufälliger Tok
 
 1. Admin-Link öffnen (am besten auf dem Handy und über „Zum Startbildschirm“ als App speichern).
 2. Namen eingeben. Mehrere gehen auf einmal, getrennt mit Komma oder Zeilenumbruch.
-3. Optional Sperren, Budget, Datum und Nachricht eintragen.
+3. Optional Sperren eintragen (z. B. Pärchen).
 4. **🥛 Lostrommel anwerfen**, die Show genießen.
 5. Links per WhatsApp oder Teilen verschicken. Unter „Los geöffnet“ sieht man, wer schon geschaut hat.
 
