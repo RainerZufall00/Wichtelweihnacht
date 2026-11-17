@@ -120,9 +120,30 @@ let actx;
 const soundOn = () => store.get('sound') !== 'off';
 function ac() {
   if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
-  if (actx.state === 'suspended') actx.resume();
+  // iPhone/iPad kennen zusätzlich "interrupted" (nach Musik, Anruf, Hintergrund) – alles außer "running" aufwecken
+  if (actx.state !== 'running') actx.resume().catch(() => {});
   return actx;
 }
+
+// iOS gibt Ton nur frei, wenn der Audio-Kontext bei einer echten Berührung startet.
+// Deshalb bei jeder Berührung einmal "aufschließen": Kontext wecken + ein stummes Sample abspielen.
+function unlockAudio() {
+  if (!soundOn()) return;
+  try {
+    const a = ac();
+    const src = a.createBufferSource();
+    src.buffer = a.createBuffer(1, 1, 22050);
+    src.connect(a.destination);
+    src.start(0);
+  } catch {}
+}
+for (const ev of ['touchend', 'click', 'keydown']) addEventListener(ev, unlockAudio, { capture: true, passive: true });
+// Zurück aus dem Hintergrund: Kontext wieder anwerfen
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && actx && actx.state !== 'running') actx.resume().catch(() => {});
+});
+// Für Geräusche, die nicht direkt aus einem Tipp kommen (z.B. Rubbeln): nur spielen, wenn Ton schon freigegeben ist
+const ready = () => soundOn() && actx && actx.state === 'running';
 
 export const sound = {
   get enabled() { return soundOn(); },
@@ -192,8 +213,8 @@ export const sound = {
     });
   },
   tick() {
-    if (!soundOn()) return;
-    const a = ac(), t = a.currentTime;
+    if (!ready()) return;
+    const a = actx, t = a.currentTime;
     const o = a.createOscillator(), g = a.createGain();
     o.type = 'triangle';
     o.frequency.value = 1800 + Math.random() * 400;
