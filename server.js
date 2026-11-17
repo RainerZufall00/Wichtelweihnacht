@@ -215,8 +215,8 @@ function adminState() {
 }
 
 // ---------------------------------------------------------------- API
-async function handleApi(req, res, url, ip) {
-  const parts = url.pathname.split('/').filter(Boolean); // ['api', ...]
+// parts: ['api', 'w', token, action] (öffentlich unter /w/api/…) oder ['api', 'admin', action]
+async function handleApi(req, res, parts, ip) {
   const method = req.method;
   if (method !== 'GET' && method !== 'POST') return json(res, 405, { error: 'nicht erlaubt' });
   if (method === 'POST' && count('write', ip)) return json(res, 429, { error: 'Langsam, die Kühe kommen nicht hinterher. Bitte kurz warten.' });
@@ -335,13 +335,23 @@ const MIME = {
   '.txt': 'text/plain; charset=utf-8',
 };
 
-function serveFile(res, rel, cache = 'no-cache', status = 200) {
+function serveFile(res, rel, cache = 'no-cache', status = 200, extra = {}) {
   const file = path.normalize(path.join(PUBLIC_DIR, rel));
   if (!file.startsWith(PUBLIC_DIR + path.sep)) return send(res, 404, 'Nicht gefunden');
   fs.readFile(file, (err, data) => {
     if (err) return send(res, 404, 'Nicht gefunden', { 'Content-Type': 'text/plain; charset=utf-8' });
-    send(res, status, data, { 'Content-Type': MIME[path.extname(file)] || 'application/octet-stream', 'Cache-Control': cache });
+    send(res, status, data, { 'Content-Type': MIME[path.extname(file)] || 'application/octet-stream', 'Cache-Control': cache, ...extra });
   });
+}
+
+// WhatsApp & Co. brauchen für das Vorschaubild eine vollständige Adresse
+let wichtelHtml;
+function serveWichtelPage(res) {
+  if (!wichtelHtml) {
+    wichtelHtml = fs.readFileSync(path.join(PUBLIC_DIR, 'wichtel.html'), 'utf8');
+    if (PUBLIC_URL) wichtelHtml = wichtelHtml.replace('content="/w/static/img/og.png"', `content="${PUBLIC_URL}/w/static/img/og.png"`);
+  }
+  send(res, 200, wichtelHtml, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-cache' });
 }
 
 function manifest(res, url) {
@@ -361,9 +371,9 @@ function manifest(res, url) {
     background_color: '#0b1630',
     theme_color: '#0b1630',
     icons: [
-      { src: '/static/img/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
-      { src: '/static/img/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
-      { src: '/static/img/maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+      { src: '/w/static/img/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
+      { src: '/w/static/img/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+      { src: '/w/static/img/maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
     ],
   };
   send(res, 200, JSON.stringify(body), { 'Content-Type': 'application/manifest+json', 'Cache-Control': 'no-cache' });
@@ -382,19 +392,25 @@ const server = http.createServer(async (req, res) => {
   }
   const p = url.pathname;
   try {
-    if (p.startsWith('/api/')) return await handleApi(req, res, url, ip);
-    if (req.method !== 'GET' && req.method !== 'HEAD') return send(res, 405, 'Nicht erlaubt');
+    // ===== Öffentlich (Pangolin-Regel „/w/*“ ohne Login): alles, was ein Wichtel-Link braucht
+    if (p.startsWith('/w/api/')) return await handleApi(req, res, ['api', 'w', ...p.split('/').filter(Boolean).slice(2)], ip);
+    if (p.startsWith('/w/') && req.method !== 'GET' && req.method !== 'HEAD') return send(res, 405, 'Nicht erlaubt');
+    if (/^\/w\/static\/(css|js|fonts|img)\/[A-Za-z0-9._-]+$/.test(p) && !p.includes('..')) return serveFile(res, p.slice(10), 'public, max-age=3600');
+    if (p === '/w/sw.js') return serveFile(res, 'sw.js', 'no-cache', 200, { 'Service-Worker-Allowed': '/' });
+    if (p === '/w/manifest.webmanifest') return manifest(res, url);
+    if (/^\/w\/[A-Za-z0-9_-]{16,64}\/?$/.test(p) || p === '/w/shell') return serveWichtelPage(res);
+    if (p.startsWith('/w/')) return send(res, 404, 'Nicht gefunden', { 'Content-Type': 'text/plain; charset=utf-8' });
 
+    // ===== Hinter dem Pangolin-Login (zusätzlich durch den Admin-Token geschützt)
+    if (p.startsWith('/api/admin/')) return await handleApi(req, res, p.split('/').filter(Boolean), ip);
+    if (p.startsWith('/api/')) return json(res, 404, { error: 'unbekannt' });
+    if (req.method !== 'GET' && req.method !== 'HEAD') return send(res, 405, 'Nicht erlaubt');
     if (p === '/' || p === '/index.html') return serveFile(res, 'index.html');
-    if (/^\/w\/[A-Za-z0-9_-]+\/?$/.test(p) || p === '/shell/wichtel') return serveFile(res, 'wichtel.html');
-    if (/^\/admin\/[A-Za-z0-9_-]+\/?$/.test(p) || p === '/shell/admin') return serveFile(res, 'admin.html');
-    if (p === '/sw.js') return serveFile(res, 'sw.js', 'no-cache', 200);
-    if (p === '/manifest.webmanifest') return manifest(res, url);
+    if (/^\/admin\/[A-Za-z0-9_-]+\/?$/.test(p)) return serveFile(res, 'admin.html');
     if (p === '/favicon.ico' || p === '/favicon.svg') return serveFile(res, 'img/icon.svg', 'public, max-age=86400');
     if (p === '/apple-touch-icon.png' || p === '/apple-touch-icon-precomposed.png') return serveFile(res, 'img/apple-touch-icon.png', 'public, max-age=86400');
     if (p === '/robots.txt') return send(res, 200, 'User-agent: *\nDisallow: /\n', { 'Content-Type': 'text/plain' });
     if (p === '/healthz') return send(res, 200, 'muh', { 'Content-Type': 'text/plain' });
-    if (/^\/static\/(css|js|fonts|img)\/[A-Za-z0-9._-]+$/.test(p) && !p.includes('..')) return serveFile(res, p.slice(8), 'public, max-age=3600');
 
     return serveFile(res, 'index.html', 'no-cache', 404);
   } catch (e) {

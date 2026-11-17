@@ -257,9 +257,9 @@ export function toast(msg, kind = 'ok') {
 export function setupPwa(startPath) {
   const link = document.createElement('link');
   link.rel = 'manifest';
-  link.href = `/manifest.webmanifest${startPath ? `?start=${encodeURIComponent(startPath)}` : ''}`;
+  link.href = `/w/manifest.webmanifest${startPath ? `?start=${encodeURIComponent(startPath)}` : ''}`;
   document.head.appendChild(link);
   if ('serviceWorker' in navigator) {
-    addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
+    addEventListener('load', () => navigator.serviceWorker.register('/w/sw.js', { scope: '/' }).catch(() => {}));
   }
 }

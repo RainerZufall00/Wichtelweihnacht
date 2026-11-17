@@ -34,11 +34,21 @@ Wenn `ADMIN_TOKEN` nicht gesetzt ist, wird beim ersten Start ein zufälliger Tok
 2. Als Ziel eintragen:
    - **Variante A** (Standard in der compose-Datei): Der Port ist nur lokal freigegeben, Ziel ist `http://127.0.0.1:3000` bzw. die Host-IP, über die Newt/Gerbil den Host erreicht.
    - **Variante B**: Den Container ins Docker-Netz von Pangolin/Newt hängen (Block in `docker-compose.yml` einkommentieren). Ziel ist dann `http://wichtel:3000`.
-3. **Authentifizierung (empfohlen: Admin hinter Pangolin-Login).** Deine Familie hat keinen Pangolin-Login, du schon. Lass deshalb SSO für die Resource **an** und gib in den **Regeln** der Resource nur diese Pfade ohne Login frei („Bypass Auth“ bzw. „Always Allow“):
-   `/`, `/w/*`, `/api/w/*`, `/static/*`, `/shell/*`, `/sw.js`, `/manifest.webmanifest`, `/favicon.ico`, `/apple-touch-icon.png`, `/robots.txt`.
-   Alles andere, vor allem `/admin/*` und `/api/admin/*`, erfordert dann deinen Pangolin-Login **und** den geheimen Admin-Link.
-   (Notlösung: SSO ganz aus. Dann schützt nur der lange Zufallstoken den Admin-Bereich.)
+3. **Authentifizierung: alles hinter Pangolin, nur die Wichtel-Links frei.**
+   - Für die Resource die Pangolin-Authentifizierung (SSO) **einschalten**.
+   - Unter **Regeln** der Resource genau **eine** Regel anlegen:
+
+     | Aktion | Typ | Wert |
+     |---|---|---|
+     | Always Allow (Bypass Auth) | Path | `/w/*` |
+
+   Fertig. Unter `/w/` liegt alles, was ein Wichtel-Link braucht: die Seite selbst, die Los-Schnittstelle, Grafiken, Schriften, Service Worker und App-Manifest. Alles andere liegt hinter deinem Pangolin-Login: Startseite, Admin-Zentrale (`/admin/…`) und Admin-Schnittstelle (`/api/admin/…`). Für die Admin-Zentrale brauchst du also deinen Pangolin-Login **und** den geheimen Admin-Link.
    Optional: Mit einer Länder-Regel lässt Pangolin nur Zugriffe aus Deutschland durch.
+
+   Was die Familie über `/w/` erreichen kann:
+   - `/w/<token>`: das persönliche Los (ohne gültigen 16-stelligen Token gibt es nichts)
+   - `/w/api/<token>`: Name abfragen und Los aufdecken (falsche Tokens werden nach 20 Versuchen pro IP gesperrt)
+   - `/w/static/…`, `/w/sw.js`, `/w/manifest.webmanifest`: Programmcode, Grafiken und Schriften, keine Daten
 4. HTTPS übernimmt Pangolin. Das wird auch für die PWA-Installation und den Service Worker gebraucht.
 
 ## Ablauf

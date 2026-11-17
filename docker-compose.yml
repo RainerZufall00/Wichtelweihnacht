@@ -5,7 +5,7 @@ services:
     container_name: wichtel
     restart: unless-stopped
     environment:
-      # Öffentliche Adresse – nur für die Anzeige des Admin-Links im Log
+      # Öffentliche Adresse: für den Admin-Link im Log und das Vorschaubild in WhatsApp & Co.
       PUBLIC_URL: https://wichteln.example.de
       # Hinter Pangolin: echte Besucher-IP für die Rate-Limits verwenden.
       # Nur sicher, solange der Port NICHT öffentlich erreichbar ist (siehe "ports" unten).

@@ -24,7 +24,7 @@ const setNames = () => $$('[data-name]').forEach((el) => (el.textContent = me.na
 // ------------------------------------------------------------ Start
 async function init() {
   try {
-    me = await api(`/api/w/${token}`);
+    me = await api(`/w/api/${token}`);
   } catch (e) {
     const cached = JSON.parse(store.get(cacheKey) || 'null');
     if (e.status === 404 || !cached) return show('s-unknown');
@@ -54,7 +54,7 @@ $('#yesBtn').addEventListener('click', async () => {
   buzz(20);
   $('#yesBtn').disabled = true;
   try {
-    const reveal = api(`/api/w/${token}/reveal`, { method: 'POST' });
+    const reveal = api(`/w/api/${token}/reveal`, { method: 'POST' });
     reveal.catch(() => {}); // Fehler wird unten beim await behandelt
     if (me.revealedBefore) {
       result = await reveal;
@@ -78,7 +78,7 @@ const persist = () => store.set(cacheKey, JSON.stringify({ me, result }));
 const CHECKS = [
   ['🐕', 'Emmi macht extra ein Auge auf', 'Geruchsprobe: Plätzchen. Emmi schläft beruhigt weiter.'],
   ['🐾', 'Micky prüft den Pfotenabdruck', 'Daumen gilt als Pfote. Passt.'],
-  ['🐄', 'Kuh Berta bestätigt per Muh', 'Muh-Faktor-Authentifizierung erfolgreich'],
+  ['🐄', 'Kuh Elsa bestätigt per Muh', 'Muh-Faktor-Authentifizierung erfolgreich'],
   ['🎅', 'Abgleich mit der Liste vom Weihnachtsmann', 'Status: überwiegend artig'],
 ];
 

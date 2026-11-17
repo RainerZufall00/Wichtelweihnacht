@@ -120,7 +120,7 @@ const STATUS = [
   'Emmi prüft jedes Los. Gründlich. Sehr gemütlich …',
   'Micky bewacht die Milchkanne. Grimmig.',
   'Lose werden im Mondlicht gemolken …',
-  'Kuh Berta hat ein Los gefressen. Wird nachgedruckt …',
+  'Kuh Elsa hat ein Los gefressen. Wird nachgedruckt …',
   'Demeter-konforme Durchmischung läuft …',
   'Hörner-Check: alle noch dran ✓',
   'Fast fertig. Bitte nicht muhen …',

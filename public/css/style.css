@@ -1,5 +1,5 @@
-@font-face { font-family: 'Fredoka'; src: url('/static/fonts/fredoka.woff2') format('woff2'); font-weight: 300 700; font-display: swap; }
-@font-face { font-family: 'Xmas'; src: url('/static/fonts/mountains-of-christmas.woff2') format('woff2'); font-weight: 700; font-display: swap; }
+@font-face { font-family: 'Fredoka'; src: url('/w/static/fonts/fredoka.woff2') format('woff2'); font-weight: 300 700; font-display: swap; }
+@font-face { font-family: 'Xmas'; src: url('/w/static/fonts/mountains-of-christmas.woff2') format('woff2'); font-weight: 700; font-display: swap; }
 
 :root {
   --night: #0b1630;
