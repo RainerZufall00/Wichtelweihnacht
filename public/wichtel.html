@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Humberger Wichtelweihnacht</title>
+  <meta name="description" content="Dein persönliches Wichtel-Los vom Jakobshof.">
+  <meta name="theme-color" content="#0b1630">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="referrer" content="no-referrer">
+  <meta property="og:title" content="🎄 Humberger Wichtelweihnacht">
+  <meta property="og:description" content="Dein persönliches Wichtel-Los wartet im Stall. Nicht weitergeben – Emmi und Micky passen auf!">
+  <meta property="og:image" content="/w/static/img/og.png">
+  <meta property="og:type" content="website">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Wichteln">
+  <link rel="icon" href="/w/static/img/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/w/static/img/apple-touch-icon.png">
+  <link rel="preload" href="/w/static/fonts/mountains-of-christmas.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/w/static/fonts/fredoka.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/w/static/css/style.css">
+</head>
+<body>
+  <canvas id="snow"></canvas>
+  <main class="wrap">
+    <div class="topbar">
+      <span>🐄 Jakobshof</span>
+      <button class="pill-btn" id="soundBtn" type="button">🔊</button>
+    </div>
+    <h1 class="title"><span class="small">Die große</span><span class="big">Humberger <em>Wichtel</em>weihnacht</span></h1>
+    <div class="hero" id="hero"></div>
+
+    <!-- Laden -->
+    <section class="screen active card center" id="s-loading">
+      <p class="muted">Die Kühe suchen dein Los im Heu …</p>
+    </section>
+
+    <!-- Unbekannter Link -->
+    <section class="screen card center gate" id="s-unknown">
+      <div class="dog-duo" data-dogs></div>
+      <h2>Wuff?! Diesen Link kennt nicht mal Emmi – und die kennt hier wirklich alles.</h2>
+      <p class="muted">Vielleicht hat sich beim Kopieren eine Kuh auf die Tastatur gesetzt. Frag nochmal nach deinem persönlichen Link.</p>
+    </section>
+
+    <!-- Noch nicht ausgelost -->
+    <section class="screen card center" id="s-wait">
+      <span class="kicker">Moin <span data-name></span>!</span>
+      <h2>Die Kühe beraten noch …</h2>
+      <p>Die Lostrommel wurde noch nicht angeworfen. Schau später nochmal vorbei – dein Link bleibt derselbe.</p>
+    </section>
+
+    <!-- Bist du's wirklich? -->
+    <section class="screen card center stitch" id="s-ask">
+      <span class="kicker">Sicherheitsfrage vom Hofhund</span>
+      <h2 class="big-q">Bist du wirklich <span class="nowrap"><span class="name" data-name></span>?</span></h2>
+      <p class="muted">Ehrlich jetzt. Emmi und Micky haben sehr feine Nasen.</p>
+      <div class="btns stack" style="margin-top:16px">
+        <button class="btn green block" id="yesBtn" type="button">Ja! Ich bin's 🙋</button>
+        <button class="btn ghost block" id="noBtn" type="button">Nö, ich bin's nicht …</button>
+      </div>
+    </section>
+
+    <!-- Nö -->
+    <section class="screen card center gate" id="s-nope">
+      <div class="dog-duo" data-dogs></div>
+      <h2>Erwischt! 🚨</h2>
+      <p><b>Emmi</b> ist dafür extra vom Ofen aufgestanden, und das macht sie in ihrem Alter nicht mehr für jeden. <b>Micky</b> knurrt leise. Fremde Lose gucken ist schlimmer als Kühe ohne Hörner!</p>
+      <p class="muted">Bitte gib den Link an <b data-name></b> weiter – oder ab mit dir in den Stall.</p>
+      <div class="btns stack" style="margin-top:14px">
+        <button class="btn ghost block" id="backBtn" type="button">Hups, doch – ich bin's wirklich</button>
+      </div>
+    </section>
+
+    <!-- Identitätsprüfung -->
+    <section class="screen card" id="s-check">
+      <span class="kicker">Hochoffizielle Identitätsprüfung</span>
+      <h2>Einen Moment, <span data-name></span> …</h2>
+      <ul class="checks" id="checks"></ul>
+      <div class="scanbar"><i id="scanbar"></i></div>
+    </section>
+
+    <!-- Rubbellos -->
+    <section class="screen card center" id="s-scratch">
+      <span class="kicker">Identität bestätigt ✓</span>
+      <h2>Rubbel das Kuhfell weg!</h2>
+      <p class="muted">Mit dem Finger über die Kuhflecken wischen – darunter steht, wen du beschenkst.</p>
+      <div class="scratch-wrap" id="scratchWrap">
+        <div class="scratch-under">
+          <div>
+            <div class="lbl">Du beschenkst</div>
+            <div class="who" id="who">…</div>
+            <div data-gift></div>
+          </div>
+        </div>
+        <canvas id="scratch"></canvas>
+      </div>
+      <button class="linkish" id="lazyBtn" type="button">Zu faul zum Rubbeln? Hier tippen.</button>
+    </section>
+
+    <!-- Ergebnis -->
+    <section class="screen" id="s-result">
+      <div class="card center stitch">
+        <div class="cow-mini" data-cow></div>
+        <span class="kicker">Psst, <span data-name></span> – streng geheim!</span>
+        <p style="margin:6px 0 0">Du bist der Wichtel von</p>
+        <div class="result-name" id="resultName"></div>
+        <p class="muted">Nicht verraten! Sonst muht die ganze Herde.</p>
+        <p class="muted" id="herdLine" style="font-size:14px"></p>
+      </div>
+
+      <div class="card center">
+        <h3>📲 Als App speichern</h3>
+        <p class="muted" id="installHint">Im Browser-Menü „Zum Startbildschirm hinzufügen“ wählen – dann hast du dein Los immer dabei.</p>
+        <div class="btns" style="justify-content:center">
+          <button class="btn small" id="installBtn" type="button" hidden>App installieren</button>
+          <button class="btn ghost small" id="againBtn" type="button">Nochmal rubbeln 🐄</button>
+        </div>
+      </div>
+    </section>
+
+    <p class="foot">
+      <b>Bio-zertifiziertes Losverfahren</b> nach Demeter-Richtlinien<br>
+      Kühe mit Hörnern · Hunde mit Durchblick · 0&nbsp;% Gentechnik, 100&nbsp;% Zufall<br>
+      Tipp: Tipp mal die Tiere an 🐄🐕
+    </p>
+  </main>
+  <script type="module" src="/w/static/js/wichtel.js"></script>
+</body>
+</html>

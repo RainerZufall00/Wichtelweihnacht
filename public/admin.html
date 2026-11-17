@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Wichtel-Zentrale · Humberger Wichtelweihnacht</title>
+  <meta name="theme-color" content="#0b1630">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="referrer" content="no-referrer">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Wichtel-Admin">
+  <link rel="icon" href="/w/static/img/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/w/static/img/apple-touch-icon.png">
+  <link rel="preload" href="/w/static/fonts/mountains-of-christmas.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/w/static/fonts/fredoka.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/w/static/css/style.css">
+</head>
+<body>
+  <canvas id="snow"></canvas>
+  <main class="wrap wide">
+    <div class="topbar">
+      <span>🔑 Wichtel-Zentrale</span>
+      <span class="btns" style="gap:8px">
+        <span class="pill-btn" id="live" hidden>👀 live</span>
+        <button class="pill-btn" id="soundBtn" type="button">🔊</button>
+      </span>
+    </div>
+    <h1 class="title"><span class="small">Kommandozentrale der</span><span class="big">Humberger <em>Wichtel</em>weihnacht</span></h1>
+    <div class="hero" id="hero"></div>
+
+    <section class="screen active card center" id="s-loading"><p class="muted">Stalltür wird aufgeschlossen …</p></section>
+
+    <section class="screen card center gate" id="s-gate">
+      <div class="dog-duo" data-dogs></div>
+      <h2>Halt! Hier kommt nur der Chef-Wichtel rein.</h2>
+      <p class="muted">Emmi und Micky bewachen die Wichtel-Zentrale. Mit diesem Link kommst du leider nicht am Hofhund vorbei.</p>
+    </section>
+
+    <!-- ===================== Vorbereitung ===================== -->
+    <section class="screen" id="s-setup">
+      <div class="card stitch">
+        <span class="kicker">Schritt 1</span>
+        <h2>Wer ist in der Herde? 🐄</h2>
+        <p class="muted">Namen eintippen und mit Enter oder ＋ hinzufügen. Mehrere auf einmal gehen auch – einfach mit Komma oder Zeilenumbruch einfügen.</p>
+        <div class="addrow">
+          <input type="text" id="nameInput" placeholder="z.B. Max" maxlength="200" autocomplete="off" enterkeyhint="done">
+          <button class="btn green" id="addBtn" type="button" aria-label="Hinzufügen">＋</button>
+        </div>
+        <div class="chips" id="chips"></div>
+        <p class="muted" id="herdCount"></p>
+      </div>
+
+      <div class="card">
+        <span class="kicker">Schritt 2 · optional</span>
+        <h2>Wer darf wen <u>nicht</u> ziehen?</h2>
+        <p class="muted">Für Pärchen, Geschwister oder Leute, die sich eh schon alles schenken. Gilt in beide Richtungen.</p>
+        <div class="excl">
+          <select id="exA"></select><span>✕</span><select id="exB"></select>
+          <button class="btn small" id="exAdd" type="button">Sperren</button>
+        </div>
+        <ul class="excl-list" id="exList"></ul>
+      </div>
+
+      <div class="card center stitch">
+        <span class="kicker">Schritt 3</span>
+        <h2>Ab in die Milchkanne!</h2>
+        <p class="muted">Gelost wird ein großer Kreis: Niemand zieht sich selbst, und niemand beschenkt sich gegenseitig. Danach siehst du alle Paare und bekommst pro Person einen Link.</p>
+        <label style="display:flex;gap:10px;align-items:center;justify-content:center;margin:12px 0;font-weight:500">
+          <input type="checkbox" id="spoilerChk" style="width:22px;height:22px"> Ich wichtel selbst mit – Paare erstmal verstecken
+        </label>
+        <button class="btn block" id="drawBtn" type="button" style="font-size:21px;padding:18px">🥛 Lostrommel anwerfen</button>
+        <p class="muted" id="drawHint" style="font-size:14px"></p>
+      </div>
+    </section>
+
+    <!-- ===================== Nach der Auslosung ===================== -->
+    <section class="screen" id="s-done">
+      <div class="card stitch">
+        <span class="kicker">Ausgelost am <span id="drawnAt"></span></span>
+        <h2>Die Lose sind gezogen! 🎉</h2>
+        <div class="stats two">
+          <div class="stat"><b id="stPeople">0</b><small>Wichtel</small></div>
+          <div class="stat"><b id="stOpened">0</b><small>Los geöffnet</small></div>
+        </div>
+        <div class="progress"><i id="progress"></i></div>
+        <p class="muted center" id="progressText" style="font-size:14px"></p>
+      </div>
+
+      <div class="card" id="pairsCard">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+          <h2 style="margin:0">Die Wichtel-Kette</h2>
+          <button class="btn ghost small" id="spoilerBtn" type="button">🙈 Verstecken</button>
+        </div>
+        <div id="chain"></div>
+        <p class="muted center" style="font-size:13px">Pfeil heißt: „beschenkt“. Tippe auf einen verschwommenen Namen, um kurz zu spicken.</p>
+      </div>
+
+      <div class="card" id="peopleCard">
+        <h2>Links verteilen 📨</h2>
+        <p class="muted">Jede Person bekommt ihren eigenen geheimen Link. Wer ihn öffnet, muss bestätigen, dass er's wirklich ist – dann wird das Los gerubbelt.</p>
+        <button class="btn green small" id="copyAll" type="button">📋 Alle Links als Liste kopieren</button>
+        <ul class="people" id="people"></ul>
+      </div>
+
+      <div class="card danger">
+        <h3>🚜 Nochmal ganz von vorn</h3>
+        <p class="muted">Löscht die Auslosung. Danach kannst du Namen ändern und neu losen. Wer sein Los schon gesehen hat, weiß es dann natürlich trotzdem.</p>
+        <label class="field">Zur Sicherheit <b>NEU AUSLOSEN</b> eintippen:
+          <input type="text" id="resetText" autocomplete="off" placeholder="NEU AUSLOSEN">
+        </label>
+        <label style="display:flex;gap:10px;align-items:center;margin:6px 0 12px"><input type="checkbox" id="newLinks" style="width:20px;height:20px"> Auch neue Links erzeugen (alte werden ungültig)</label>
+        <button class="btn small" id="resetBtn" type="button">Auslosung zurücksetzen</button>
+      </div>
+    </section>
+
+    <p class="foot">
+      <b>Wichtel-Zentrale</b> · Diesen Link nicht weitergeben!<br>
+      Tipp: Über „Zum Startbildschirm“ wird die Zentrale zur App.
+    </p>
+  </main>
+
+  <!-- Auslosungs-Show -->
+  <div class="show" id="show" role="dialog" aria-live="polite">
+    <div>
+      <div class="stage" id="stage"></div>
+      <div class="status" id="showStatus"></div>
+      <div id="meterBox"><div class="meter"><i id="meter"></i></div><div class="meter-l">Euter-Fortschritt</div></div>
+      <div class="reveal-grid" id="revealGrid"></div>
+      <div style="margin-top:16px"><button class="btn green" id="showClose" type="button" hidden>Weiter zu den Links →</button></div>
+    </div>
+  </div>
+
+  <script type="module" src="/w/static/js/admin.js"></script>
+</body>
+</html>
