@@ -34,11 +34,11 @@ Wenn `ADMIN_TOKEN` nicht gesetzt ist, wird beim ersten Start ein zufälliger Tok
 2. Als Ziel eintragen:
    - **Variante A** (Standard in der compose-Datei): Der Port ist nur lokal freigegeben, Ziel ist `http://127.0.0.1:3000` bzw. die Host-IP, über die Newt/Gerbil den Host erreicht.
    - **Variante B**: Den Container ins Docker-Netz von Pangolin/Newt hängen (Block in `docker-compose.yml` einkommentieren). Ziel ist dann `http://wichtel:3000`.
-3. **Wichtig: Authentifizierung.** Deine Familie hat keinen Pangolin-Login. Es gibt zwei Möglichkeiten:
-   - Einfach: Für diese Resource die Pangolin-Authentifizierung (SSO) **ausschalten**. Geschützt ist die Seite trotzdem: Jeder Link enthält einen langen Zufallstoken, und ohne Token sieht man nur die Startseite.
-   - Extra sicher: SSO anlassen und über die **Regeln** der Resource diese Pfade ohne Login erlauben („Bypass Auth“):
-     `/`, `/w/*`, `/api/w/*`, `/static/*`, `/shell/*`, `/sw.js`, `/manifest.webmanifest`, `/favicon.ico`, `/apple-touch-icon.png`.
-     Der Bereich `/admin/*` und `/api/admin/*` liegt dann zusätzlich hinter deinem Pangolin-Login.
+3. **Authentifizierung (empfohlen: Admin hinter Pangolin-Login).** Deine Familie hat keinen Pangolin-Login, du schon. Lass deshalb SSO für die Resource **an** und gib in den **Regeln** der Resource nur diese Pfade ohne Login frei („Bypass Auth“ bzw. „Always Allow“):
+   `/`, `/w/*`, `/api/w/*`, `/static/*`, `/shell/*`, `/sw.js`, `/manifest.webmanifest`, `/favicon.ico`, `/apple-touch-icon.png`, `/robots.txt`.
+   Alles andere, vor allem `/admin/*` und `/api/admin/*`, erfordert dann deinen Pangolin-Login **und** den geheimen Admin-Link.
+   (Notlösung: SSO ganz aus. Dann schützt nur der lange Zufallstoken den Admin-Bereich.)
+   Optional: Mit einer Länder-Regel lässt Pangolin nur Zugriffe aus Deutschland durch.
 4. HTTPS übernimmt Pangolin. Das wird auch für die PWA-Installation und den Service Worker gebraucht.
 
 ## Ablauf
@@ -66,11 +66,33 @@ npm i -D playwright && node scripts/build-icons.mjs
 
 Die Farben von Emmi und Micky stehen oben in `public/js/art.js` (`DOGS`). Dort lassen sie sich an die echten Hunde anpassen. Nach Änderungen an Dateien in `public/` sollte in `public/sw.js` die `VERSION` hochgezählt werden, damit installierte Apps das Update laden.
 
-## Datenschutz & Sicherheit
+## Sicherheit
 
-- Jeder Personen-Link hat einen eigenen Zufallstoken (96 Bit), der Admin-Link 144 Bit.
-- Das Los wird erst nach dem Klick auf „Ja“ vom Server geholt. Link-Vorschauen (z. B. in WhatsApp) verraten also nichts und zählen auch nicht als „geöffnet“.
-- `Referrer-Policy: no-referrer`, `noindex`, strenge Content-Security-Policy, keine externen Ressourcen (Schriften sind lokal eingebunden).
-- Backup: das Volume `wichtel-data` sichern, darin liegt `db.json`.
+Auf demselben Server läuft auch der Mailserver. Ziel ist deshalb: Selbst wenn in dieser App etwas schiefgeht, kommt man darüber nicht weiter.
+
+**Container (docker-compose.yml)**
+- Basis ist ein **Distroless-Image**: keine Shell, kein Paketmanager, keine Systemtools. Ein Angreifer findet darin praktisch kein Werkzeug.
+- Der Container läuft als **unprivilegierter User 65532**, mit `cap_drop: ALL` und `no-new-privileges`.
+- Das Dateisystem ist **schreibgeschützt** (`read_only`). Beschreibbar ist nur das Daten-Volume (`db.json` mit Rechten `600`).
+- Limits für RAM, CPU und Prozesse verhindern, dass die App den Server (und damit den Mailserver) ausbremst. Die Log-Größe ist ebenfalls begrenzt.
+- Der Container hat ein **eigenes Docker-Netz**. Er hängt nicht im Netz des Mailservers, und der Port ist nur auf `127.0.0.1` gebunden.
+- Es gibt keinen Zugriff auf `docker.sock` und keine Host-Verzeichnisse.
+
+**App**
+- Keine npm-Abhängigkeiten, also keine Angriffsfläche über die Lieferkette.
+- **Rate-Limits pro IP**: 10 falsche Admin-Versuche bzw. 20 falsche Wichtel-Links in 15 Minuten führen zur Sperre. Dazu kommen Limits für Schreibzugriffe und Anfragen insgesamt.
+- Zufallstoken: 96 Bit pro Person, 144 Bit für den Admin. Der Vergleich erfolgt in konstanter Zeit. Ein eigenes `ADMIN_TOKEN` muss mindestens 24 Zeichen lang sein.
+- POSTs werden nur als `application/json` angenommen, was CSRF verhindert. Anfragen sind auf 64 KB begrenzt, Eingaben werden gekürzt und bereinigt, und jede Ausgabe wird escaped.
+- Statische Dateien kommen nur aus einer festen Liste von Ordnern. Path-Traversal ist getestet und wird geblockt.
+- Timeouts gegen hängende Verbindungen (Slowloris).
+- Strenge Security-Header: CSP (nur eigene Skripte), HSTS, `no-referrer`, `X-Frame-Options: DENY`, COOP/CORP, `noindex`.
+- Das Los wird erst nach dem Klick auf „Ja“ geladen. Link-Vorschauen verraten nichts.
+
+**Auf dem Server selbst**
+- Port 3000 **nicht** öffentlich freigeben. Achtung: Docker umgeht UFW bei veröffentlichten Ports. Deshalb ist der Port fest an `127.0.0.1:3000` gebunden. Diese Bindung nicht ändern.
+- `TRUST_PROXY=1` nur verwenden, solange der Port ausschließlich über Pangolin erreichbar ist. Sonst könnte jemand seine IP fälschen und die Rate-Limits umgehen.
+- Ab und zu mit `docker compose build --pull && docker compose up -d` neu bauen, damit Node-Sicherheitsupdates ankommen.
+- Nach Weihnachten: `docker compose down`. Was nicht läuft, kann auch nicht angegriffen werden. 🎄
+- Backup: Volume `wichtel-data` (enthält `db.json`).
 
 Schriften: [Fredoka](https://fonts.google.com/specimen/Fredoka) und [Mountains of Christmas](https://fonts.google.com/specimen/Mountains+of+Christmas), beide unter der SIL Open Font License.

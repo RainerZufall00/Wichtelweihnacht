@@ -13,6 +13,8 @@ const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, 'data');
 const DB_FILE = path.join(DATA_DIR, 'db.json');
 const PUBLIC_DIR = path.join(__dirname, 'public');
 const PUBLIC_URL = (process.env.PUBLIC_URL || '').replace(/\/+$/, '');
+// Nur hinter einem Reverse-Proxy (Pangolin/Traefik) auf 1 setzen: dann zählt die IP aus X-Forwarded-For
+const TRUST_PROXY = process.env.TRUST_PROXY === '1';
 
 const MAX_PEOPLE = 80;
 const MAX_NAME = 40;
@@ -49,11 +51,15 @@ let db = loadDb();
 function save() {
   fs.mkdirSync(DATA_DIR, { recursive: true });
   const tmp = `${DB_FILE}.${process.pid}.tmp`;
-  fs.writeFileSync(tmp, JSON.stringify(db, null, 2));
+  fs.writeFileSync(tmp, JSON.stringify(db, null, 2), { mode: 0o600 });
   fs.renameSync(tmp, DB_FILE);
 }
 
 if (process.env.ADMIN_TOKEN) {
+  if (!/^[A-Za-z0-9_-]{24,128}$/.test(process.env.ADMIN_TOKEN)) {
+    console.error('ADMIN_TOKEN muss 24–128 Zeichen lang sein (A–Z, a–z, 0–9, _ oder -). Tipp: openssl rand -base64 24 | tr "+/" "-_"');
+    process.exit(1);
+  }
   db.adminToken = process.env.ADMIN_TOKEN;
 } else if (!db.adminToken) {
   db.adminToken = newToken(18);
@@ -95,6 +101,41 @@ function drawAssignments(ids, exclusions) {
   return null;
 }
 
+// ---------------------------------------------------------------- Rate-Limits (im Speicher)
+const LIMITS = {
+  all: { max: 600, win: 5 * 60e3 }, // alle Anfragen
+  write: { max: 60, win: 5 * 60e3 }, // POSTs
+  miss: { max: 20, win: 15 * 60e3 }, // falsche Wichtel-Links
+  adminFail: { max: 10, win: 15 * 60e3 }, // falscher Admin-Token
+};
+const hits = new Map();
+function bucket(kind, ip) {
+  const now = Date.now();
+  const key = `${kind}|${ip}`;
+  let b = hits.get(key);
+  if (!b || b.reset < now) {
+    if (hits.size > 50000) hits.clear(); // Speicher-Notbremse
+    b = { n: 0, reset: now + LIMITS[kind].win };
+    hits.set(key, b);
+  }
+  return b;
+}
+const blocked = (kind, ip) => bucket(kind, ip).n >= LIMITS[kind].max;
+const count = (kind, ip) => ++bucket(kind, ip).n > LIMITS[kind].max;
+setInterval(() => {
+  const now = Date.now();
+  for (const [k, b] of hits) if (b.reset < now) hits.delete(k);
+}, 60e3).unref();
+
+function clientIp(req) {
+  if (TRUST_PROXY) {
+    // Rechtester Eintrag = die Adresse, die der eigene Proxy gesehen hat (nicht vom Client fälschbar)
+    const xff = String(req.headers['x-forwarded-for'] || '').split(',').map((s) => s.trim()).filter(Boolean);
+    if (xff.length) return xff[xff.length - 1].slice(0, 64);
+  }
+  return req.socket.remoteAddress || '?';
+}
+
 // ---------------------------------------------------------------- Helfer
 function safeEqual(a, b) {
   const ba = Buffer.from(String(a));
@@ -107,7 +148,10 @@ const SECURITY_HEADERS = {
   'Referrer-Policy': 'no-referrer',
   'X-Robots-Tag': 'noindex, nofollow',
   'X-Frame-Options': 'DENY',
-  'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
+  'Permissions-Policy': 'camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()',
+  'Cross-Origin-Opener-Policy': 'same-origin',
+  'Cross-Origin-Resource-Policy': 'same-origin',
+  'Strict-Transport-Security': 'max-age=31536000',
   'Content-Security-Policy':
     "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; font-src 'self'; connect-src 'self'; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
 };
@@ -124,20 +168,26 @@ function json(res, status, data) {
 }
 
 function readBody(req) {
+  // Nur echtes JSON annehmen: erzwingt bei fremden Seiten einen CORS-Preflight (Schutz gegen CSRF)
+  if (!/^application\/json(;|$)/i.test(req.headers['content-type'] || '')) {
+    return Promise.reject(Object.assign(new Error('Nur JSON erlaubt'), { status: 415 }));
+  }
   return new Promise((resolve, reject) => {
     let size = 0;
     const chunks = [];
     req.on('data', (c) => {
       size += c.length;
       if (size > 64 * 1024) {
-        reject(Object.assign(new Error('zu groß'), { status: 413 }));
-        req.destroy();
+        req.removeAllListeners('data');
+        reject(Object.assign(new Error('Anfrage zu groß'), { status: 413 }));
       } else chunks.push(c);
     });
     req.on('end', () => {
       if (!chunks.length) return resolve({});
       try {
-        resolve(JSON.parse(Buffer.concat(chunks).toString('utf8')));
+        const data = JSON.parse(Buffer.concat(chunks).toString('utf8'));
+        if (!data || typeof data !== 'object' || Array.isArray(data)) throw new Error();
+        resolve(data);
       } catch {
         reject(Object.assign(new Error('Ungültiges JSON'), { status: 400 }));
       }
@@ -168,14 +218,20 @@ function adminState() {
 }
 
 // ---------------------------------------------------------------- API
-async function handleApi(req, res, url) {
+async function handleApi(req, res, url, ip) {
   const parts = url.pathname.split('/').filter(Boolean); // ['api', ...]
   const method = req.method;
+  if (method !== 'GET' && method !== 'POST') return json(res, 405, { error: 'nicht erlaubt' });
+  if (method === 'POST' && count('write', ip)) return json(res, 429, { error: 'Langsam, die Kühe kommen nicht hinterher. Bitte kurz warten.' });
 
   // ---------- Wichtel (Teilnehmer)
   if (parts[1] === 'w' && parts[2]) {
+    if (blocked('miss', ip)) return json(res, 429, { error: 'Zu viele falsche Links. Emmi macht kurz Pause – später nochmal.' });
     const p = db.participants.find((x) => safeEqual(x.token, parts[2]));
-    if (!p) return json(res, 404, { error: 'unbekannt' });
+    if (!p) {
+      count('miss', ip);
+      return json(res, 404, { error: 'unbekannt' });
+    }
     const action = parts[3] || '';
 
     if (method === 'GET' && action === '') {
@@ -208,8 +264,12 @@ async function handleApi(req, res, url) {
 
   // ---------- Admin
   if (parts[1] === 'admin') {
+    if (blocked('adminFail', ip)) return json(res, 429, { error: 'Zu viele Fehlversuche. Micky bewacht die Tür – später nochmal.' });
     const token = req.headers['x-admin-token'] || '';
-    if (!safeEqual(token, db.adminToken)) return json(res, 401, { error: 'Kein Zutritt' });
+    if (!safeEqual(token, db.adminToken)) {
+      if (count('adminFail', ip)) console.warn(`⚠️  Viele falsche Admin-Versuche von ${ip}`);
+      return json(res, 401, { error: 'Kein Zutritt' });
+    }
     const action = parts[2] || '';
 
     if (method === 'GET' && action === 'state') return json(res, 200, adminState());
@@ -332,10 +392,18 @@ function manifest(res, url) {
 
 // ---------------------------------------------------------------- Router
 const server = http.createServer(async (req, res) => {
-  const url = new URL(req.url, 'http://x');
+  const ip = clientIp(req);
+  if (count('all', ip)) return send(res, 429, 'Zu viele Anfragen', { 'Content-Type': 'text/plain; charset=utf-8', 'Retry-After': '60' });
+  if (req.url.length > 2048) return send(res, 414, 'URL zu lang');
+  let url;
+  try {
+    url = new URL(req.url, 'http://x');
+  } catch {
+    return send(res, 400, 'Ungültige Anfrage');
+  }
   const p = url.pathname;
   try {
-    if (p.startsWith('/api/')) return await handleApi(req, res, url);
+    if (p.startsWith('/api/')) return await handleApi(req, res, url, ip);
     if (req.method !== 'GET' && req.method !== 'HEAD') return send(res, 405, 'Nicht erlaubt');
 
     if (p === '/' || p === '/index.html') return serveFile(res, 'index.html');
@@ -347,19 +415,31 @@ const server = http.createServer(async (req, res) => {
     if (p === '/apple-touch-icon.png' || p === '/apple-touch-icon-precomposed.png') return serveFile(res, 'img/apple-touch-icon.png', 'public, max-age=86400');
     if (p === '/robots.txt') return send(res, 200, 'User-agent: *\nDisallow: /\n', { 'Content-Type': 'text/plain' });
     if (p === '/healthz') return send(res, 200, 'muh', { 'Content-Type': 'text/plain' });
-    if (p.startsWith('/static/')) return serveFile(res, decodeURIComponent(p.slice(8)), 'public, max-age=3600');
+    if (/^\/static\/(css|js|fonts|img)\/[A-Za-z0-9._-]+$/.test(p) && !p.includes('..')) return serveFile(res, p.slice(8), 'public, max-age=3600');
 
     return serveFile(res, 'index.html', 'no-cache', 404);
   } catch (e) {
-    console.error(e);
-    if (!res.headersSent) json(res, e.status || 500, { error: e.status ? e.message : 'Da ist was im Stall umgefallen.' });
+    if (!e.status) console.error(e);
+    if (!res.headersSent) {
+      if (e.status === 413) res.setHeader('Connection', 'close');
+      json(res, e.status || 500, { error: e.status ? e.message : 'Da ist was im Stall umgefallen.' });
+    }
+    if (e.status === 413) res.on('finish', () => req.destroy());
   }
 });
+
+// Schutz gegen langsame/hängende Verbindungen (Slowloris & Co.)
+server.headersTimeout = 10e3;
+server.requestTimeout = 15e3;
+server.keepAliveTimeout = 5e3;
+server.maxHeadersCount = 50;
+server.maxConnections = 500;
 
 server.listen(PORT, () => {
   const base = PUBLIC_URL || `http://localhost:${PORT}`;
   console.log('🐄  Humberger Wichtelweihnacht läuft auf Port', PORT);
   console.log('🔑  Admin-Link:', `${base}/admin/${db.adminToken}`);
+  if (!TRUST_PROXY) console.log('ℹ️  TRUST_PROXY ist aus – Rate-Limits gelten pro direkter Verbindung.');
 });
 
 for (const sig of ['SIGINT', 'SIGTERM']) process.on(sig, () => server.close(() => process.exit(0)));

@@ -17,6 +17,7 @@ export { store };
 // ------------------------------------------------------------ API
 export async function api(path, { method = 'GET', body, admin } = {}) {
   const headers = {};
+  if (method !== 'GET') body = body || {}; // Server akzeptiert nur JSON
   if (body) headers['Content-Type'] = 'application/json';
   if (admin) headers['X-Admin-Token'] = admin;
   const res = await fetch(path, { method, headers, body: body ? JSON.stringify(body) : undefined, cache: 'no-store' });

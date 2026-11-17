@@ -1,26 +1,51 @@
 services:
   wichtel:
     build: .
+    image: humberger-wichtel:latest
     container_name: wichtel
     restart: unless-stopped
     environment:
-      # Öffentliche Adresse – nur damit der Admin-Link im Log korrekt angezeigt wird
+      # Öffentliche Adresse – nur für die Anzeige des Admin-Links im Log
       PUBLIC_URL: https://wichteln.example.de
-      # Optional: eigenes Admin-Geheimnis (sonst wird eins erzeugt und im Log ausgegeben)
-      # ADMIN_TOKEN: bitte-etwas-langes-zufaelliges
+      # Hinter Pangolin: echte Besucher-IP für die Rate-Limits verwenden.
+      # Nur sicher, solange der Port NICHT öffentlich erreichbar ist (siehe "ports" unten).
+      TRUST_PROXY: "1"
+      # Optional: eigenes Admin-Geheimnis (mind. 24 Zeichen), sonst wird eins erzeugt:
+      #   openssl rand -base64 24 | tr '+/' '-_'
+      # ADMIN_TOKEN: ...
     volumes:
       - wichtel-data:/data
-    # Variante A: Port nur lokal freigeben, Pangolin/Newt zeigt auf http://127.0.0.1:3000
+
+    # ---------- Härtung: der Container darf so gut wie nichts ----------
+    read_only: true                 # Dateisystem schreibgeschützt (nur /data beschreibbar)
+    tmpfs:
+      - /tmp:size=4m,noexec,nosuid,nodev
+    cap_drop: [ALL]                 # keine Linux-Capabilities
+    security_opt:
+      - no-new-privileges:true      # keine Rechteausweitung
+    user: "65532:65532"             # nie als root
+    pids_limit: 64
+    mem_limit: 160m
+    cpus: 0.5
+    logging:
+      driver: json-file
+      options: { max-size: "5m", max-file: "2" }
+
+    # ---------- Netzwerk ----------
+    # Eigenes, isoliertes Netz – NIEMALS ins Netz des Mailservers hängen.
+    networks: [wichtel]
+    # Variante A: Port nur auf localhost; Pangolin/Newt zeigt auf http://127.0.0.1:3000
     ports:
       - "127.0.0.1:3000:3000"
-    # Variante B: statt "ports" ins Docker-Netz von Pangolin/Newt hängen
-    #             und in Pangolin als Ziel http://wichtel:3000 eintragen
-    # networks:
-    #   - pangolin
+    # Variante B (statt A): nur ins Netz von Newt/Pangolin, dann "ports" und "wichtel"-Netz
+    # entfernen und als Ziel http://wichtel:3000 eintragen:
+    # networks: [pangolin]
 
 volumes:
   wichtel-data:
 
-# networks:
-#   pangolin:
-#     external: true
+networks:
+  wichtel:
+    driver: bridge
+#  pangolin:
+#    external: true
