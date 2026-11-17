@@ -1,4 +1,4 @@
-// Handgezeichnete SVG-Kunst für den Humberger Hof 🐄🐕
+// Handgezeichnete SVG-Kunst für den Jakobshof 🐄🐕
 let uid = 0;
 const nid = (p) => `${p}${++uid}`;
 
@@ -183,6 +183,8 @@ export function barn() {
     <rect x="58" y="88" width="44" height="60" fill="#f5e9d6"/>
     <rect x="62" y="92" width="36" height="56" fill="#8e1f23"/>
     <path d="M62 92 L98 148 M98 92 L62 148" stroke="#f5e9d6" stroke-width="4"/>
+    <rect x="46" y="44" width="68" height="14" rx="3" fill="#f5e9d6" stroke="#5b3a24" stroke-width="1.5"/>
+    <text x="80" y="54.5" text-anchor="middle" class="barn-sign">JAKOBSHOF</text>
     <rect x="70" y="62" width="20" height="18" rx="2" fill="#ffd77a" class="window"/>
     <path d="M80 62 v18 M70 71 h20" stroke="#8e1f23" stroke-width="2"/>
     <rect x="26" y="96" width="20" height="18" rx="2" fill="#ffd77a" class="window"/>
@@ -208,7 +210,7 @@ function tree(x, y, s = 1) {
 /** Hof-Szene: Stall, Kühe am Zaun, Emmi & Micky. */
 export function farmScene({ cows = true, dogs = true } = {}) {
   const fence = Array.from({ length: 14 }, (_, i) => `<rect x="${i * 30 + 4}" y="188" width="8" height="40" rx="3" fill="#8a5a36"/>`).join('');
-  return `<svg class="farm" viewBox="0 0 420 270" preserveAspectRatio="xMidYMax meet" role="img" aria-label="Verschneiter Humberger Hof mit Stall, Kühen und den Hunden Emmi und Micky">
+  return `<svg class="farm" viewBox="0 0 420 270" preserveAspectRatio="xMidYMax meet" role="img" aria-label="Verschneiter Jakobshof mit Stall, Kühen und den Hunden Emmi und Micky">
     <circle cx="350" cy="44" r="22" fill="#fff6d8" class="moon"/>
     <circle cx="358" cy="38" r="20" fill="#0f1d3d" opacity=".0"/>
     <path d="M0 170 Q90 120 200 150 T420 140 V270 H0 Z" fill="#c9dbf3"/>

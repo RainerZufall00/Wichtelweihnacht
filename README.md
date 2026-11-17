@@ -1,6 +1,6 @@
 # 🐄🎄 Humberger Wichtelweihnacht
 
-Einmalige Wichtel-Auslosung als PWA, gemacht für den Humberger Demeter-Hof, mit Kühen (natürlich mit Hörnern) und den Hofhunden **Emmi** & **Micky**.
+Einmalige Wichtel-Auslosung als PWA, gemacht für den Demeter-Hof **Jakobshof**, mit Kühen (natürlich mit Hörnern) und den Hofhunden **Emmi** & **Micky**.
 
 - **Admin-Link**: Namen eintragen und optional Sperren festlegen (z. B. für Pärchen). Dann die **Milchkannen-Lostrommel** anwerfen.
 - Gelost wird **ein großer Kreis**. Niemand zieht sich selbst, und niemand beschenkt sich gegenseitig.

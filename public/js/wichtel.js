@@ -202,7 +202,7 @@ function startScratch() {
 // ------------------------------------------------------------ Ergebnis
 function showResult(celebrate) {
   $('#resultName').textContent = result.receiver;
-  $('#herdLine').textContent = `Du bist einer von ${me.count} Wichteln im Humberger Stall.`;
+  $('#herdLine').textContent = `Du bist einer von ${me.count} Wichteln im Stall vom Jakobshof.`;
   show('s-result');
   window.scrollTo({ top: 0, behavior: 'smooth' });
   if (celebrate) setTimeout(() => sound.moo(), 300);

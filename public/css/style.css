@@ -117,6 +117,7 @@ textarea { min-height: 110px; resize: vertical; line-height: 1.4; }
 .art-label { font-family: 'Fredoka'; font-weight: 600; font-size: 13px; fill: #fff; }
 .dog-name { font-size: 13px; font-weight: 700; fill: #5a3a1e; paint-order: stroke; stroke: #fbf7f0; stroke-width: 2.5px; }
 .churn-text { font-family: 'Fredoka'; font-weight: 700; font-size: 15px; fill: var(--green); letter-spacing: .08em; }
+.barn-sign { font-family: 'Fredoka', sans-serif; font-weight: 700; font-size: 9.5px; letter-spacing: .08em; fill: #7b1c20; }
 .churn-sub { font-family: 'Fredoka'; font-size: 10px; fill: var(--muted); }
 .eyes.blink { transform-box: fill-box; transform-origin: center; animation: blink 5.5s infinite; }
 @keyframes blink { 0%, 94%, 100% { transform: scaleY(1); } 96% { transform: scaleY(.1); } }

@@ -52,6 +52,8 @@ body{margin:0;width:1200px;height:630px;overflow:hidden;background:radial-gradie
 .p{margin-top:24px;font-size:28px;color:#cfdcff}
 .f{position:absolute;right:-20px;bottom:0;width:760px;-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 22%)}
 .art-label{font-family:Fredoka;font-weight:600;font-size:13px;fill:#fff}
+.dog-name{font-size:13px;font-weight:700;fill:#5a3a1e;paint-order:stroke;stroke:#fbf7f0;stroke-width:2.5px}
+.barn-sign{font-family:Fredoka;font-weight:700;font-size:9.5px;letter-spacing:.08em;fill:#7b1c20}
 </style>
 <div class="t"><div class="s">Die große</div><div class="b">Humberger <em>Wichtel</em>weihnacht</div><div class="p">Dein Los wartet im Stall 🐄🎁</div></div>
 <div class="f">${farmScene()}</div>`);

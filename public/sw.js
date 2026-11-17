@@ -1,6 +1,6 @@
 // Service Worker: App-Shell offline, API immer frisch.
 // Liegt unter /w/ (öffentlich), steuert per Service-Worker-Allowed aber die ganze Seite.
-const VERSION = 'wichtel-v7';
+const VERSION = 'wichtel-v8';
 // Nur Dateien unter /w/ vorab laden: alles andere liegt hinter dem Pangolin-Login
 const SHELL = [
   '/w/shell',

@@ -362,7 +362,7 @@ function manifest(res, url) {
     id: valid,
     name: isAdmin ? 'Wichtel-Zentrale' : 'Humberger Wichtelweihnacht',
     short_name: isAdmin ? 'Wichtel-Admin' : 'Wichteln',
-    description: 'Bio-zertifiziertes Wichteln vom Humberger Hof – mit Kühen, Hörnern und zwei sehr wachsamen Hunden.',
+    description: 'Bio-zertifiziertes Wichteln vom Jakobshof – mit Kühen, Hörnern und zwei sehr wachsamen Hunden.',
     start_url: valid,
     scope: '/',
     display: 'standalone',
