@@ -227,17 +227,27 @@ export function wireTaps(root = document) {
     const says = (g.dataset.say || (kind === 'moo' ? 'Muuuh!' : 'Wuff!')).split('|');
     const i = Number(g.dataset.i || 0);
     g.dataset.i = (i + 1) % says.length;
-    bubble(says[i], e.clientX, e.clientY);
+    // Blase über dem Kopf des angetippten Tieres, nicht am Fingerpunkt
+    const r = g.getBoundingClientRect();
+    bubble(says[i], r.left + r.width / 2, r.top + r.height * 0.08);
   });
 }
 
 export function bubble(text, x, y) {
+  document.querySelectorAll('.say').forEach((old) => old.remove());
   const b = document.createElement('div');
   b.className = 'say';
   b.textContent = text;
-  b.style.left = `${Math.min(Math.max(x, 130), innerWidth - 130)}px`;
-  b.style.top = `${y}px`;
+  b.style.visibility = 'hidden';
   document.body.appendChild(b);
+  // Blase im Bildschirm halten, die Spitze bleibt aber über dem Tier
+  const w = b.offsetWidth, m = 8;
+  const left = Math.min(Math.max(x - w / 2, m), innerWidth - w - m);
+  const tail = Math.min(Math.max(x - left, 18), w - 18);
+  b.style.left = `${left}px`;
+  b.style.top = `${Math.max(y, 0)}px`;
+  b.style.setProperty('--tail', `${tail}px`);
+  b.style.visibility = '';
   setTimeout(() => b.remove(), 2600);
 }
 

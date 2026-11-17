@@ -137,12 +137,13 @@ textarea { min-height: 110px; resize: vertical; line-height: 1.4; }
 .tap.wiggle { animation: wiggle .5s; transform-box: fill-box; transform-origin: 50% 100%; }
 @keyframes wiggle { 25% { transform: rotate(-6deg) translateY(-4px); } 50% { transform: rotate(5deg) translateY(-8px); } 75% { transform: rotate(-3deg); } }
 .say {
-  position: fixed; z-index: 120; transform: translate(-50%, -130%); background: #fff; color: var(--ink); font-weight: 600;
+  position: fixed; z-index: 120; transform: translateY(calc(-100% - 12px)); background: #fff; color: var(--ink); font-weight: 600;
   padding: 8px 14px; border-radius: 16px; box-shadow: 0 8px 20px rgba(0, 0, 0, .3); pointer-events: none; width: max-content; max-width: min(250px, 80vw); text-align: center; line-height: 1.3;
-  animation: pop 2.6s forwards;
+  transform-origin: var(--tail, 50%) 100%; animation: pop 2.6s forwards;
 }
-.say::after { content: ''; position: absolute; left: 50%; bottom: -8px; border: 8px solid transparent; border-top-color: #fff; border-bottom: 0; transform: translateX(-50%); }
-@keyframes pop { 0% { opacity: 0; transform: translate(-50%, -100%) scale(.6); } 12% { opacity: 1; transform: translate(-50%, -130%) scale(1.05); } 20% { transform: translate(-50%, -130%) scale(1); } 85% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, -160%); } }
+/* Spitze zeigt immer auf das angetippte Tier, auch wenn die Blase am Rand verschoben wird */
+.say::after { content: ''; position: absolute; left: var(--tail, 50%); bottom: -8px; border: 8px solid transparent; border-top-color: #fff; border-bottom: 0; transform: translateX(-50%); }
+@keyframes pop { 0% { opacity: 0; transform: translateY(calc(-100% - 4px)) scale(.6); } 12% { opacity: 1; transform: translateY(calc(-100% - 12px)) scale(1.05); } 20% { transform: translateY(calc(-100% - 12px)) scale(1); } 85% { opacity: 1; } 100% { opacity: 0; transform: translateY(calc(-100% - 36px)); } }
 
 /* ---------- Toasts */
 .toasts { position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom)); transform: translateX(-50%); z-index: 130; display: grid; gap: 8px; width: min(92vw, 420px); }
