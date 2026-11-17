@@ -1,0 +1,13 @@
+# Nur nötig, wenn Newt im Host-Modus läuft (docker inspect newt → NetworkMode: host).
+# Dann kennt Newt keine Container-Namen und braucht einen lokalen Port.
+#
+#   cp docker-compose.override.example.yml docker-compose.override.yml
+#   docker compose up -d
+#
+# In Pangolin als Ziel eintragen: http://127.0.0.1:3010
+# Wichtig: immer an 127.0.0.1 binden, sonst wäre der Port aus dem Internet erreichbar
+# (Docker umgeht dabei die Firewall).
+services:
+  wichtel:
+    ports:
+      - "127.0.0.1:3010:3000"

@@ -63,7 +63,16 @@ cd wichtel && git pull && docker compose up -d --build
 ## In Pangolin einrichten
 
 1. Eine neue **HTTP-Resource** anlegen, z. B. `wichteln.deine-domain.de`, mit der lokalen Site (Pangolin auf demselben Server).
-2. Als Ziel eintragen: **`http://wichtel:3000`**. Der Container öffnet keinen Port nach außen, er ist nur über das Docker-Netz von Pangolin erreichbar.
+2. Als Ziel eintragen. Welches, hängt davon ab, wie Newt bzw. Pangolin angebunden ist. Prüfen mit `docker inspect newt --format '{{.HostConfig.NetworkMode}}'`:
+   - **Newt/Pangolin in einem Docker-Netz:** `PANGOLIN_NETWORK` in `.env` auf dieses Netz setzen, Ziel ist **`http://wichtel:3000`**. Der Container öffnet dann keinen Port.
+   - **Newt im Host-Modus (`host`):** Newt kennt keine Container-Namen. Dann die lokale Port-Freigabe aktivieren:
+     ```bash
+     cp docker-compose.override.example.yml docker-compose.override.yml
+     docker compose up -d
+     curl -s http://127.0.0.1:3010/healthz     # Antwort: muh
+     ```
+     Ziel in Pangolin: **`http://127.0.0.1:3010`**. Der Port ist nur auf dem VPS selbst erreichbar, nicht aus dem Internet. Ist 3010 belegt, die Zahl in der Datei und in Pangolin ändern.
+   - **„Bad Gateway“** heißt fast immer: Pangolin bzw. Newt erreicht den Container nicht. Dann ist der Netzwerk-Fall falsch gewählt.
 3. **Authentifizierung: alles hinter Pangolin, nur die Wichtel-Links frei.**
    - Für die Resource die Pangolin-Authentifizierung (SSO) **einschalten**.
    - Unter **Regeln** der Resource genau **eine** Regel anlegen:
@@ -129,7 +138,7 @@ Auf demselben Server läuft auch der Mailserver. Ziel ist deshalb: Selbst wenn i
 - Das Los wird erst nach dem Klick auf „Ja“ geladen. Link-Vorschauen verraten nichts.
 
 **Auf dem Server selbst**
-- In `docker-compose.yml` **kein** `ports:` ergänzen. Docker umgeht bei veröffentlichten Ports die Firewall (UFW), und mit `TRUST_PROXY=1` könnte dann jemand seine IP fälschen und die Rate-Limits umgehen.
+- Ports nur an `127.0.0.1` binden (wie in `docker-compose.override.example.yml`), nie öffentlich. Docker umgeht bei veröffentlichten Ports die Firewall (UFW), und mit `TRUST_PROXY=1` könnte dann jemand seine IP fälschen und die Rate-Limits umgehen.
 - Die Wichtel-App nie ins Docker-Netz des Mailservers hängen.
 - Ab und zu mit `docker compose build --pull && docker compose up -d` neu bauen, damit Node-Sicherheitsupdates ankommen.
 - Nach Weihnachten: `docker compose down`. Was nicht läuft, kann auch nicht angegriffen werden. 🎄
