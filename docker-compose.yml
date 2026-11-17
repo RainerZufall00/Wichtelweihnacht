@@ -1,0 +1,26 @@
+services:
+  wichtel:
+    build: .
+    container_name: wichtel
+    restart: unless-stopped
+    environment:
+      # Öffentliche Adresse – nur damit der Admin-Link im Log korrekt angezeigt wird
+      PUBLIC_URL: https://wichteln.example.de
+      # Optional: eigenes Admin-Geheimnis (sonst wird eins erzeugt und im Log ausgegeben)
+      # ADMIN_TOKEN: bitte-etwas-langes-zufaelliges
+    volumes:
+      - wichtel-data:/data
+    # Variante A: Port nur lokal freigeben, Pangolin/Newt zeigt auf http://127.0.0.1:3000
+    ports:
+      - "127.0.0.1:3000:3000"
+    # Variante B: statt "ports" ins Docker-Netz von Pangolin/Newt hängen
+    #             und in Pangolin als Ziel http://wichtel:3000 eintragen
+    # networks:
+    #   - pangolin
+
+volumes:
+  wichtel-data:
+
+# networks:
+#   pangolin:
+#     external: true

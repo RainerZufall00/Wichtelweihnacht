@@ -1,0 +1,13 @@
+{
+  "name": "humberger-wichtelweihnacht",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Wichtel-Auslosung als PWA – Humberger Wichtelweihnacht",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "icons": "node scripts/build-icons.mjs"
+  },
+  "engines": { "node": ">=20" },
+  "license": "MIT"
+}
