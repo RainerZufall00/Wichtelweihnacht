@@ -5,14 +5,14 @@ services:
     container_name: wichtel
     restart: unless-stopped
     environment:
+      # Kommt aus der Datei .env (Vorlage: .env.example)
       # Öffentliche Adresse: für den Admin-Link im Log und das Vorschaubild in WhatsApp & Co.
-      PUBLIC_URL: https://wichteln.example.de
+      PUBLIC_URL: ${PUBLIC_URL:?Bitte PUBLIC_URL in .env setzen, z.B. https://wichteln.deine-domain.de}
+      # Optional: eigenes Admin-Geheimnis (mind. 24 Zeichen), sonst wird eins erzeugt
+      ADMIN_TOKEN: ${ADMIN_TOKEN:-}
       # Hinter Pangolin: echte Besucher-IP für die Rate-Limits verwenden.
-      # Nur sicher, solange der Port NICHT öffentlich erreichbar ist (siehe "ports" unten).
+      # Sicher, weil der Container keinen Port nach außen öffnet (nur über das Pangolin-Netz erreichbar).
       TRUST_PROXY: "1"
-      # Optional: eigenes Admin-Geheimnis (mind. 24 Zeichen), sonst wird eins erzeugt:
-      #   openssl rand -base64 24 | tr '+/' '-_'
-      # ADMIN_TOKEN: ...
     volumes:
       - wichtel-data:/data
 
@@ -32,20 +32,16 @@ services:
       options: { max-size: "5m", max-file: "2" }
 
     # ---------- Netzwerk ----------
-    # Eigenes, isoliertes Netz – NIEMALS ins Netz des Mailservers hängen.
-    networks: [wichtel]
-    # Variante A: Port nur auf localhost; Pangolin/Newt zeigt auf http://127.0.0.1:3000
-    ports:
-      - "127.0.0.1:3000:3000"
-    # Variante B (statt A): nur ins Netz von Newt/Pangolin, dann "ports" und "wichtel"-Netz
-    # entfernen und als Ziel http://wichtel:3000 eintragen:
-    # networks: [pangolin]
+    # Kein "ports:" – der Container ist von außen NICHT erreichbar, nur für Pangolin.
+    # In Pangolin als Ziel eintragen: http://wichtel:3000
+    # NIEMALS ins Netz des Mailservers hängen.
+    networks: [pangolin]
 
 volumes:
   wichtel-data:
 
 networks:
-  wichtel:
-    driver: bridge
-#  pangolin:
-#    external: true
+  pangolin:
+    external: true
+    # Name des Docker-Netzes, in dem Pangolin (bzw. Traefik/Newt) hängt – prüfen mit: docker network ls
+    name: ${PANGOLIN_NETWORK:-pangolin}

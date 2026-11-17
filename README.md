@@ -11,29 +11,59 @@ Einmalige Wichtel-Auslosung als PWA, gemacht für den Demeter-Hof **Jakobshof**,
 
 Keine npm-Abhängigkeiten, nur Node ≥ 20. Die Daten liegen in einer JSON-Datei (`/data/db.json`).
 
-## Starten mit Docker
+## Auf dem VPS deployen
+
+Voraussetzung: Docker mit Compose-Plugin, Pangolin läuft auf demselben VPS in Docker.
+
+**1. Zugriff auf GitHub prüfen** (das Repo ist privat)
 
 ```bash
-git clone <repo> wichtel && cd wichtel
-# in docker-compose.yml PUBLIC_URL auf deine Domain setzen
+gh auth status            # mit GitHub CLI angemeldet?
+ssh -T git@github.com     # oder: SSH-Schlüssel hinterlegt? ("Hi <name>! You've successfully authenticated")
+```
+
+**2. Holen**
+
+```bash
+git clone -b main git@github.com:RainerZufall00/Wichtelweihnacht.git wichtel   # mit SSH-Schlüssel
+# oder: gh repo clone RainerZufall00/Wichtelweihnacht wichtel -- -b main     # mit GitHub CLI
+cd wichtel
+```
+
+**3. Einstellen**
+
+```bash
+docker network ls               # Name des Pangolin-Netzes suchen (meist "pangolin")
+cp .env.example .env
+nano .env                       # PUBLIC_URL = deine Domain, ggf. PANGOLIN_NETWORK anpassen
+```
+
+**4. Starten**
+
+```bash
 docker compose up -d --build
-docker compose logs wichtel     # zeigt den Admin-Link
+docker compose ps               # Status sollte nach ein paar Sekunden "healthy" sein
+docker compose logs wichtel     # hier steht dein Admin-Link
 ```
 
 Im Log steht:
 
 ```
-🔑  Admin-Link: https://wichteln.example.de/admin/<geheimer-token>
+🔑  Admin-Link: https://wichteln.deine-domain.de/admin/<geheimer-token>
 ```
 
-Wenn `ADMIN_TOKEN` nicht gesetzt ist, wird beim ersten Start ein zufälliger Token erzeugt und im Volume gespeichert. Der Link bleibt also auch nach Neustarts gleich.
+Wenn `ADMIN_TOKEN` leer ist, wird beim ersten Start ein zufälliger Token erzeugt und im Volume gespeichert. Der Link bleibt also auch nach Neustarts gleich. **Den Admin-Link nicht weitergeben.**
 
-## Hinter Pangolin
+**Updates später**
 
-1. In Pangolin eine neue **HTTP-Resource** anlegen, z. B. `wichteln.deine-domain.de`.
-2. Als Ziel eintragen:
-   - **Variante A** (Standard in der compose-Datei): Der Port ist nur lokal freigegeben, Ziel ist `http://127.0.0.1:3000` bzw. die Host-IP, über die Newt/Gerbil den Host erreicht.
-   - **Variante B**: Den Container ins Docker-Netz von Pangolin/Newt hängen (Block in `docker-compose.yml` einkommentieren). Ziel ist dann `http://wichtel:3000`.
+```bash
+cd wichtel && git pull && docker compose up -d --build
+```
+
+## In Pangolin einrichten
+
+1. Eine neue **HTTP-Resource** anlegen, z. B. `wichteln.deine-domain.de`, mit der lokalen Site (Pangolin auf demselben Server).
+2. Als Ziel eintragen: **`http://wichtel:3000`**. Der Container öffnet keinen Port nach außen, er ist nur über das Docker-Netz von Pangolin erreichbar.
 3. **Authentifizierung: alles hinter Pangolin, nur die Wichtel-Links frei.**
    - Für die Resource die Pangolin-Authentifizierung (SSO) **einschalten**.
    - Unter **Regeln** der Resource genau **eine** Regel anlegen:
@@ -85,7 +115,7 @@ Auf demselben Server läuft auch der Mailserver. Ziel ist deshalb: Selbst wenn i
 - Der Container läuft als **unprivilegierter User 65532**, mit `cap_drop: ALL` und `no-new-privileges`.
 - Das Dateisystem ist **schreibgeschützt** (`read_only`). Beschreibbar ist nur das Daten-Volume (`db.json` mit Rechten `600`).
 - Limits für RAM, CPU und Prozesse verhindern, dass die App den Server (und damit den Mailserver) ausbremst. Die Log-Größe ist ebenfalls begrenzt.
-- Der Container hat ein **eigenes Docker-Netz**. Er hängt nicht im Netz des Mailservers, und der Port ist nur auf `127.0.0.1` gebunden.
+- Der Container öffnet **keinen Port** nach außen und hängt nur im Docker-Netz von Pangolin, nicht im Netz des Mailservers.
 - Es gibt keinen Zugriff auf `docker.sock` und keine Host-Verzeichnisse.
 
 **App**
@@ -99,8 +129,8 @@ Auf demselben Server läuft auch der Mailserver. Ziel ist deshalb: Selbst wenn i
 - Das Los wird erst nach dem Klick auf „Ja“ geladen. Link-Vorschauen verraten nichts.
 
 **Auf dem Server selbst**
-- Port 3000 **nicht** öffentlich freigeben. Achtung: Docker umgeht UFW bei veröffentlichten Ports. Deshalb ist der Port fest an `127.0.0.1:3000` gebunden. Diese Bindung nicht ändern.
-- `TRUST_PROXY=1` nur verwenden, solange der Port ausschließlich über Pangolin erreichbar ist. Sonst könnte jemand seine IP fälschen und die Rate-Limits umgehen.
+- In `docker-compose.yml` **kein** `ports:` ergänzen. Docker umgeht bei veröffentlichten Ports die Firewall (UFW), und mit `TRUST_PROXY=1` könnte dann jemand seine IP fälschen und die Rate-Limits umgehen.
+- Die Wichtel-App nie ins Docker-Netz des Mailservers hängen.
 - Ab und zu mit `docker compose build --pull && docker compose up -d` neu bauen, damit Node-Sicherheitsupdates ankommen.
 - Nach Weihnachten: `docker compose down`. Was nicht läuft, kann auch nicht angegriffen werden. 🎄
 - Backup: Volume `wichtel-data` (enthält `db.json`).
