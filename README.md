@@ -64,7 +64,7 @@ Icons und das Vorschaubild für WhatsApp (`public/img/*.png`) werden aus den SVG
 npm i -D playwright && node scripts/build-icons.mjs
 ```
 
-Die Farben von Emmi und Micky stehen oben in `public/js/art.js` (`DOGS`). Dort lassen sie sich an die echten Hunde anpassen. Nach Änderungen an Dateien in `public/` sollte in `public/sw.js` die `VERSION` hochgezählt werden, damit installierte Apps das Update laden.
+Emmi (Berner Sennenhund) und Micky (Mini Australian Shepherd) sind in `public/js/art.js` gezeichnet (Funktionen `emmi()` und `micky()`). Nach Änderungen an Dateien in `public/` sollte in `public/sw.js` die `VERSION` hochgezählt werden, damit installierte Apps das Update laden.
 
 ## Sicherheit
 

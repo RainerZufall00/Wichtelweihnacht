@@ -1,5 +1,5 @@
 // Service Worker: App-Shell offline, API immer frisch.
-const VERSION = 'wichtel-v2';
+const VERSION = 'wichtel-v3';
 const SHELL = [
   '/',
   '/shell/wichtel',

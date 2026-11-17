@@ -115,7 +115,7 @@ textarea { min-height: 110px; resize: vertical; line-height: 1.4; }
 
 /* ---------- Tiere */
 .art-label { font-family: 'Fredoka'; font-weight: 600; font-size: 13px; fill: #fff; }
-.dog-name { font-size: 14px; font-weight: 700; fill: #5a3a1e; }
+.dog-name { font-size: 13px; font-weight: 700; fill: #5a3a1e; paint-order: stroke; stroke: #fbf7f0; stroke-width: 2.5px; }
 .churn-text { font-family: 'Fredoka'; font-weight: 700; font-size: 15px; fill: var(--green); letter-spacing: .08em; }
 .churn-sub { font-family: 'Fredoka'; font-size: 10px; fill: var(--muted); }
 .eyes.blink { transform-box: fill-box; transform-origin: center; animation: blink 5.5s infinite; }
@@ -204,8 +204,10 @@ textarea { min-height: 110px; resize: vertical; line-height: 1.4; }
 .wishes { white-space: pre-wrap; background: #fff; border-radius: 16px; padding: 14px; border: 2px dashed #e3d6bd; font-size: 16px; line-height: 1.45; }
 .note { background: #fff6d8; border-radius: 14px; padding: 12px 14px; border-left: 5px solid var(--gold); white-space: pre-wrap; }
 
-.dog-duo { display: flex; justify-content: center; gap: 6px; margin: -4px 0 4px; }
-.dog-duo svg { width: 92px; height: auto; }
+.dog-duo { display: flex; justify-content: center; align-items: flex-end; gap: 4px; margin: -4px 0 4px; }
+.dog-duo svg { height: auto; }
+.dog-duo .dog-emmi { width: 124px; }
+.dog-duo .dog-micky { width: 78px; }
 .cow-mini { width: 110px; margin: -78px auto 4px; filter: drop-shadow(0 10px 12px rgba(0, 0, 0, .3)); }
 .cow-mini svg { display: block; width: 100%; height: auto; }
 .shake { animation: shake .5s; }
@@ -272,7 +274,8 @@ textarea { min-height: 110px; resize: vertical; line-height: 1.4; }
 
 /* Gate (kein Zutritt) */
 .gate { text-align: center; }
-.gate .dog-duo svg { width: 110px; }
+.gate .dog-duo .dog-emmi { width: 140px; }
+.gate .dog-duo .dog-micky { width: 88px; }
 
 @media (min-width: 700px) {
   .people { grid-template-columns: 1fr 1fr; }

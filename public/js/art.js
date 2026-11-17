@@ -67,56 +67,101 @@ export function cow({ coat = 'fleck', hat = 'santa', name = '', blink = true, cl
   </svg>`;
 }
 
-const DOGS = {
-  emmi: { fur: '#c98a4b', dark: '#8b5527', chest: '#f4dcb8', accessory: 'antlers', tag: 'Emmi' },
-  micky: { fur: '#3b3532', dark: '#1f1b19', chest: '#f3efe8', accessory: 'santa', tag: 'Micky' },
-};
+const TONGUE = '<path class="tongue" d="M75 102 Q80 118 85 102 Z" fill="#f07a86"/><path d="M80 104 v8" stroke="#d65a68" stroke-width="1.2"/>';
+
+function dogEyes(y, lx, rx) {
+  // Braune Iris, damit die Augen auf schwarzem Fell sichtbar sind
+  return `<g class="eyes blink">
+      <circle cx="${lx}" cy="${y}" r="7" fill="#6b4126"/><circle cx="${rx}" cy="${y}" r="7" fill="#6b4126"/>
+      <circle cx="${lx}" cy="${y}" r="4.6" fill="#0e0c0b"/><circle cx="${rx}" cy="${y}" r="4.6" fill="#0e0c0b"/>
+      <circle cx="${lx + 2}" cy="${y - 2.5}" r="2" fill="#fff"/><circle cx="${rx + 2}" cy="${y - 2.5}" r="2" fill="#fff"/>
+    </g>`;
+}
+
+const ANTLERS = `<g class="antlers" stroke="#7a4a2c" stroke-width="5" stroke-linecap="round" fill="none">
+    <path d="M58 44 Q50 20 40 8 M50 26 Q38 24 32 16 M46 16 Q50 6 56 2"/>
+    <path d="M102 44 Q110 20 120 8 M110 26 Q122 24 128 16 M114 16 Q110 6 104 2"/>
+    <path d="M46 52 Q80 26 114 52" stroke="#c0392b" stroke-width="5"/>
+  </g>`;
+const BANDANA = `<g class="bandana">
+    <path d="M52 100 Q80 114 108 100 L104 110 Q92 122 80 142 Q68 122 56 110 Z" fill="#d42a2a"/>
+    <path d="M52 100 Q80 114 108 100 L106 106 Q80 120 54 106 Z" fill="#a51d22"/>
+    <g fill="#fff" opacity=".9"><circle cx="70" cy="116" r="2"/><circle cx="90" cy="116" r="2"/><circle cx="80" cy="124" r="2"/><circle cx="74" cy="131" r="1.6"/><circle cx="86" cy="131" r="1.6"/><circle cx="80" cy="113" r="1.6"/></g>
+    <path d="M104 104 l10 -4 -2 8 Z" fill="#d42a2a"/>
+  </g>`;
+const COLLAR = (y) => `<path d="M52 ${y} Q80 ${y + 14} 108 ${y}" stroke="#1f6f43" stroke-width="7" fill="none" stroke-linecap="round"/>
+    <circle cx="80" cy="${y + 14}" r="8.5" fill="#f2c14e" stroke="#c99a2e" stroke-width="1.5"/>`;
+
+/** Emmi – Berner Sennenhund: groß, dreifarbig (schwarz, weiß, rostbraun) */
+function emmi() {
+  const B = '#1d1a19', W = '#fbf7f0', R = '#b8622b';
+  return `
+    <path class="tail" d="M114 172 C148 170 160 142 150 114 C146 132 134 150 112 156 Z" fill="${B}"/>
+    <path d="M150 114 C155 122 155 132 152 140 C147 133 146 122 150 114 Z" fill="${W}"/>
+    <ellipse cx="80" cy="150" rx="48" ry="49" fill="${B}"/>
+    <path d="M38 132 l-6 6 6 2 M122 132 l6 6 -6 2" stroke="${B}" stroke-width="5" stroke-linecap="round"/>
+    <rect x="51" y="156" width="21" height="40" rx="10" fill="${R}"/>
+    <rect x="88" y="156" width="21" height="40" rx="10" fill="${R}"/>
+    <path d="M80 104 C62 108 58 130 64 148 C68 160 75 170 80 180 C85 170 92 160 96 148 C102 130 98 108 80 104 Z" fill="${W}"/>
+    <path d="M70 122 l-4 6 6 0 M90 122 l4 6 -6 0 M74 140 l-3 5 5 0 M86 140 l3 5 -5 0" stroke="#e7ddcf" stroke-width="2" fill="none"/>
+    <ellipse cx="61" cy="196" rx="15" ry="8.5" fill="${W}"/>
+    <ellipse cx="99" cy="196" rx="15" ry="8.5" fill="${W}"/>
+    <path d="M56 197 v-5 M61 198 v-5 M66 197 v-5 M94 197 v-5 M99 198 v-5 M104 197 v-5" stroke="#b9ada0" stroke-width="1.6" stroke-linecap="round"/>
+    <path class="ear-l" d="M48 50 C34 54 24 78 31 98 C40 101 51 86 57 64 Z" fill="#131110"/>
+    <path class="ear-r" d="M112 50 C126 54 136 78 129 98 C120 101 109 86 103 64 Z" fill="#131110"/>
+    <path d="M80 36 C106 36 122 54 122 77 C122 100 104 113 80 113 C56 113 38 100 38 77 C38 54 54 36 80 36 Z" fill="${B}"/>
+    <ellipse cx="58" cy="95" rx="13" ry="10" fill="${R}"/>
+    <ellipse cx="102" cy="95" rx="13" ry="10" fill="${R}"/>
+    <path d="M80 42 C75 54 72 68 70 84 L90 84 C88 68 85 54 80 42 Z" fill="${W}"/>
+    <ellipse cx="80" cy="97" rx="19" ry="15" fill="${W}"/>
+    <ellipse cx="63" cy="60" rx="5.5" ry="4" fill="${R}"/>
+    <ellipse cx="97" cy="60" rx="5.5" ry="4" fill="${R}"/>
+    ${dogEyes(72, 63, 97)}
+    <ellipse cx="80" cy="88" rx="8.5" ry="6" fill="#0e0c0b"/>
+    <ellipse cx="78" cy="86" rx="2.6" ry="1.6" fill="#fff" opacity=".6"/>
+    <path d="M80 94 v5 M80 99 Q72 106 65 100 M80 99 Q88 106 95 100" stroke="#0e0c0b" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+    ${TONGUE}
+    ${ANTLERS}
+    ${COLLAR(110)}`;
+}
+
+/** Micky – Mini Australian Shepherd: klein, schwarz-weiß, Klappohren, Halskrause */
+function micky() {
+  const B = '#1b1919', W = '#fbf8f3', C = '#b8743a';
+  return `
+    <path class="tail" d="M112 176 C140 176 150 156 144 136 C138 150 128 160 110 162 Z" fill="${B}"/>
+    <path d="M144 136 l5 6 -6 1 4 6 -6 0" fill="${B}"/>
+    <ellipse cx="80" cy="154" rx="40" ry="45" fill="${B}"/>
+    <rect x="56" y="160" width="17" height="36" rx="8" fill="${W}"/>
+    <rect x="87" y="160" width="17" height="36" rx="8" fill="${W}"/>
+    <path d="M56 104 L62 116 L53 122 L62 130 L56 138 L67 144 L64 154 L75 160 L80 174 L85 160 L96 154 L93 144 L104 138 L98 130 L107 122 L98 116 L104 104 Q80 96 56 104 Z" fill="${W}"/>
+    <ellipse cx="64" cy="196" rx="12.5" ry="7.5" fill="${W}"/>
+    <ellipse cx="96" cy="196" rx="12.5" ry="7.5" fill="${W}"/>
+    <path d="M60 197 v-4 M64 198 v-4 M68 197 v-4 M92 197 v-4 M96 198 v-4 M100 197 v-4" stroke="#b9ada0" stroke-width="1.5" stroke-linecap="round"/>
+    <g class="ear-l"><path d="M52 62 C44 46 42 34 47 22 C56 30 64 40 68 50 Z" fill="${B}"/>
+      <path d="M47 22 C41 28 39 36 41 44 C45 39 48 33 50 27 Z" fill="#4d4645"/></g>
+    <g class="ear-r"><path d="M108 62 C116 46 118 34 113 22 C104 30 96 40 92 50 Z" fill="${B}"/>
+      <path d="M113 22 C119 28 121 36 119 44 C115 39 112 33 110 27 Z" fill="#4d4645"/></g>
+    <path d="M47 66 l-6 4 6 3 M113 66 l6 4 -6 3" stroke="${B}" stroke-width="4" stroke-linecap="round"/>
+    <ellipse cx="80" cy="76" rx="33" ry="32" fill="${B}"/>
+    <path d="M80 44 C77 56 75 68 73 84 L87 84 C85 68 83 56 80 44 Z" fill="${W}"/>
+    <ellipse cx="80" cy="95" rx="16" ry="12.5" fill="${W}"/>
+    <ellipse cx="65" cy="63" rx="3.6" ry="2.6" fill="${C}"/>
+    <ellipse cx="95" cy="63" rx="3.6" ry="2.6" fill="${C}"/>
+    ${dogEyes(72, 65, 95)}
+    <ellipse cx="80" cy="88" rx="7" ry="5.2" fill="#0e0c0b"/>
+    <ellipse cx="78" cy="86.5" rx="2.2" ry="1.4" fill="#fff" opacity=".6"/>
+    <path d="M80 93 v4 M80 97 Q73 103 67 98 M80 97 Q87 103 93 98" stroke="#0e0c0b" stroke-width="2" fill="none" stroke-linecap="round"/>
+    ${BANDANA}`;
+}
 
 /** Sitzender Hund. which: 'emmi' | 'micky' */
 export function dog(which = 'emmi', { cls = '' } = {}) {
-  const d = DOGS[which];
-  const acc =
-    d.accessory === 'antlers'
-      ? `<g class="antlers" stroke="#7a4a2c" stroke-width="5" stroke-linecap="round" fill="none">
-          <path d="M58 44 Q50 20 40 8 M50 26 Q38 24 32 16 M46 16 Q50 6 56 2"/>
-          <path d="M102 44 Q110 20 120 8 M110 26 Q122 24 128 16 M114 16 Q110 6 104 2"/>
-          <path d="M46 52 Q80 26 114 52" stroke="#c0392b" stroke-width="5"/>
-        </g>`
-      : `<g class="hat" transform="rotate(14 80 40)">
-          <path d="M48 48 C54 16 92 4 124 14 C112 22 108 34 112 48 Z" fill="#d42a2a"/>
-          <rect x="42" y="40" width="76" height="14" rx="7" fill="#fff"/>
-          <circle cx="126" cy="15" r="9" fill="#fff"/>
-        </g>`;
+  const label = which === 'emmi' ? 'Emmi' : 'Micky';
+  const tagY = which === 'emmi' ? 150 : 154;
   return `<svg class="dog dog-${which} ${cls}" viewBox="0 0 160 205" aria-hidden="true">
-    <!-- Schwanz -->
-    <path class="tail" d="M118 168 Q150 160 146 128" stroke="${d.fur}" stroke-width="12" fill="none" stroke-linecap="round"/>
-    <!-- Körper -->
-    <ellipse cx="80" cy="152" rx="44" ry="46" fill="${d.fur}"/>
-    <ellipse cx="80" cy="150" rx="24" ry="34" fill="${d.chest}"/>
-    <ellipse cx="60" cy="194" rx="15" ry="9" fill="${d.fur}"/>
-    <ellipse cx="100" cy="194" rx="15" ry="9" fill="${d.fur}"/>
-    <path d="M55 195 v-5 M60 196 v-5 M65 195 v-5 M95 195 v-5 M100 196 v-5 M105 195 v-5" stroke="${d.dark}" stroke-width="1.6" stroke-linecap="round"/>
-    <!-- Ohren -->
-    <path class="ear-l" d="M48 58 C28 56 20 86 28 108 C36 112 46 98 52 78 Z" fill="${d.dark}"/>
-    <path class="ear-r" d="M112 58 C132 56 140 86 132 108 C124 112 114 98 108 78 Z" fill="${d.dark}"/>
-    <!-- Kopf -->
-    <ellipse cx="80" cy="78" rx="38" ry="36" fill="${d.fur}"/>
-    <ellipse cx="80" cy="96" rx="22" ry="16" fill="${d.chest}"/>
-    ${which === 'micky' ? `<path d="M80 44 C74 60 74 74 80 84 C86 74 86 60 80 44 Z" fill="${d.chest}"/>` : ''}
-    <g class="eyes blink">
-      <ellipse cx="65" cy="74" rx="5.5" ry="6.5" fill="#1d1a18"/>
-      <ellipse cx="95" cy="74" rx="5.5" ry="6.5" fill="#1d1a18"/>
-      <circle cx="67" cy="71.5" r="2" fill="#fff"/><circle cx="97" cy="71.5" r="2" fill="#fff"/>
-    </g>
-    <ellipse cx="80" cy="88" rx="8" ry="6" fill="#1d1a18"/>
-    <ellipse cx="78" cy="86" rx="2.5" ry="1.6" fill="#fff" opacity=".6"/>
-    <path d="M80 94 v5 M80 99 Q72 106 66 100 M80 99 Q88 106 94 100" stroke="#1d1a18" stroke-width="2.2" fill="none" stroke-linecap="round"/>
-    <path class="tongue" d="M76 103 Q80 116 84 103 Z" fill="#f07a86"/>
-    ${acc}
-    <!-- Halsband + Marke -->
-    <path d="M50 110 Q80 124 110 110" stroke="#1f6f43" stroke-width="7" fill="none" stroke-linecap="round"/>
-    <circle cx="80" cy="126" r="9" fill="#f2c14e" stroke="#c99a2e" stroke-width="1.5"/>
-    <text x="80" y="146" text-anchor="middle" class="art-label dog-name">${d.tag}</text>
+    ${which === 'emmi' ? emmi() : micky()}
+    <text x="80" y="${tagY}" text-anchor="middle" class="art-label dog-name"${which === 'micky' ? ' style="font-size:11px"' : ''}>${label}</text>
   </svg>`;
 }
 
@@ -176,8 +221,8 @@ export function farmScene({ cows = true, dogs = true } = {}) {
     ${cows ? `<g class="tap" data-sound="moo" data-say="Muuuh! 🎄"><svg x="160" y="112" width="96" height="104">${cow({ coat: 'fleck', hat: 'santa' })}</svg></g>
     <g class="tap" data-sound="moo" data-say="Muh-ry Christmas!"><svg x="236" y="128" width="84" height="90">${cow({ coat: 'schwarz', hat: 'none' })}</svg></g>` : ''}
     <path d="M0 238 Q210 222 420 238 V270 H0 Z" fill="#fff"/>
-    ${dogs ? `<g class="tap" data-sound="bark" data-say="Wuff! Ich bin Emmi 🦌"><svg x="40" y="190" width="62" height="80">${dog('emmi')}</svg></g>
-    <g class="tap" data-sound="bark" data-say="Wuff wuff! Micky hier 🎅"><svg x="100" y="196" width="58" height="74">${dog('micky')}</svg></g>` : ''}
+    ${dogs ? `<g class="tap" data-sound="bark" data-say="Wuff! Emmi, Berner Sennenhund 🦌"><svg x="14" y="154" width="94" height="120">${dog('emmi')}</svg></g>
+    <g class="tap" data-sound="bark" data-say="Wuff! Micky, klein aber oho 🐑"><svg x="100" y="200" width="58" height="74">${dog('micky')}</svg></g>` : ''}
   </svg>`;
 }
 
